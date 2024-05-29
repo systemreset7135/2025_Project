@@ -18,10 +18,13 @@ import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.XboxController;
  
+import frc.robot.subsystems.AprilTagSubsystem;
+
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.ClimbingCmd;
+import frc.robot.commands.AprilTagCommand;
 import frc.robot.commands.TeleopShootCmd;
 import frc.robot.commands.TeleopIntake;
 import frc.robot.commands.AutoShootingCmd;
@@ -50,6 +53,7 @@ public class RobotContainer {
   private final DriveSubsystemPigeon2 m_robotDrive = new DriveSubsystemPigeon2();
   private final ShooterSubsystem m_ShootSubsystem = new ShooterSubsystem();
   private final ClimberSubsystem m_ClimberSubsystem = new ClimberSubsystem();
+  private final AprilTagSubsystem aprilTagSubsystem = new AprilTagSubsystem();
   // The driver's controller
   PS4Controller m_driverController = new PS4Controller(OIConstants.kDriverControllerPort);
   PS4Controller n_driverController = new PS4Controller(OIConstants.kDriverControllerPortSec);
@@ -126,6 +130,9 @@ public class RobotContainer {
     new JoystickButton(m_driverController, OIConstants.kDriverAutoClimbButtonIndex).whileTrue(new ClimbingCmd(m_ClimberSubsystem, "auto"));
   }
  
+  public Command getAutonomousCommand() {
+    return new AprilTagCommand(m_robotDrive, aprilTagSubsystem);
+}
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
    *
@@ -231,68 +238,68 @@ public class RobotContainer {
   // --------------------------------------------------
  
  
-  // // side Comand 左大（别动）
-  public Command getAutonomousCommand() {
-    Wheelinitial();
-    Command drivesideCommand = new RunCommand(
-    () -> {
+  // // // side Comand 左大（别动）
+  // public Command getAutonomousCommand() {
+  //   Wheelinitial();
+  //   Command drivesideCommand = new RunCommand(
+  //   () -> {
      
-      m_robotDrive.drive(0.085, 0.085, 0 , true, true);
-    },
-    m_robotDrive
+  //     m_robotDrive.drive(0.085, 0.085, 0 , true, true);
+  //   },
+  //   m_robotDrive
  
-    )
-    .withTimeout(1);
+  //   )
+  //   .withTimeout(1);
    
-    Command rotationCommand = new RunCommand(
-      () -> m_robotDrive.drive(0, 0, 0.22 , true, true),
-      m_robotDrive
+  //   Command rotationCommand = new RunCommand(
+  //     () -> m_robotDrive.drive(0, 0, 0.22 , true, true),
+  //     m_robotDrive
  
-      )
-      .withTimeout(2);
-    Command stopCommand1 = new RunCommand(
-      () -> {
-        System.out.println("STOP");
-        m_robotDrive.drive(0, 0, 0 , true, true);
-      },
-      m_robotDrive
+  //     )
+  //     .withTimeout(2);
+  //   Command stopCommand1 = new RunCommand(
+  //     () -> {
+  //       System.out.println("STOP");
+  //       m_robotDrive.drive(0, 0, 0 , true, true);
+  //     },
+  //     m_robotDrive
  
-      )
+  //     )
  
-      .withTimeout(1);
-       Command stopCommand2 = new RunCommand(
-      () -> {
-        System.out.println("STOP");
-        m_robotDrive.drive(0, 0, 0 , true, true);
-      },
-      m_robotDrive
+  //     .withTimeout(1);
+  //      Command stopCommand2 = new RunCommand(
+  //     () -> {
+  //       System.out.println("STOP");
+  //       m_robotDrive.drive(0, 0, 0 , true, true);
+  //     },
+  //     m_robotDrive
  
-      )
-      .withTimeout(0.25);
+  //     )
+  //     .withTimeout(0.25);
  
-    Command autoShootCommand = new InstantCommand(() -> m_ShootSubsystem.shoot("out")).withTimeout(1);
+  //   Command autoShootCommand = new InstantCommand(() -> m_ShootSubsystem.shoot("out")).withTimeout(1);
  
-    Command rotateCommand = new RunCommand(
-      () -> m_robotDrive.drive(0, 0, -1.08 , true, true),
-      m_robotDrive
+  //   Command rotateCommand = new RunCommand(
+  //     () -> m_robotDrive.drive(0, 0, -1.08 , true, true),
+  //     m_robotDrive
      
-      )
-      .withTimeout(1);
+  //     )
+  //     .withTimeout(1);
      
-      Command backoutCommand = new RunCommand(
-        () -> m_robotDrive.drive(-0.25, 0, 0 , true, true),
-        m_robotDrive
+  //     Command backoutCommand = new RunCommand(
+  //       () -> m_robotDrive.drive(-0.25, 0, 0 , true, true),
+  //       m_robotDrive
        
-        )
-        .withTimeout(8);
-       
-       
+  //       )
+  //       .withTimeout(8);
        
        
        
-  //       // return new SequentialCommandGroup(drivesideCommand, stopCommand2,new WaitCommand(2), autoShootCommand, new WaitCommand(2), rotationCommand, stopCommand1, new WaitCommand(1.5), backoutCommand);
-       return new SequentialCommandGroup(autoShootCommand, new WaitCommand(2),  rotateCommand, stopCommand2, backoutCommand);
-    };
+       
+       
+  // //       // return new SequentialCommandGroup(drivesideCommand, stopCommand2,new WaitCommand(2), autoShootCommand, new WaitCommand(2), rotationCommand, stopCommand1, new WaitCommand(1.5), backoutCommand);
+  //      return new SequentialCommandGroup(autoShootCommand, new WaitCommand(2),  rotateCommand, stopCommand2, backoutCommand);
+  //   };
  
    //side Comand 左大修改
   // public Command getAutonomousCommand() {

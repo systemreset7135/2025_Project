@@ -45,7 +45,8 @@
   },
   "NTProvider": {
     "types": {
-      "/FMSInfo": "FMSInfo"
+      "/FMSInfo": "FMSInfo",
+      "/Shuffleboard/Example tab/Pigeon 2 [0]": "Gyro"
     }
   },
   "NetworkTables": {

@@ -15,6 +15,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.WPIUtilJNI;
+import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.DriveConstants;
 import frc.utils.SwerveUtils;
@@ -67,6 +68,7 @@ public class DriveSubsystemPigeon2 extends SubsystemBase {
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystemPigeon2() {
+    m_gyro.reset();
   }
 
   @Override
@@ -88,9 +90,9 @@ public class DriveSubsystemPigeon2 extends SubsystemBase {
    *
    * @return The pose.
    */
-//   public Pose2d getPose() {
-//     return m_odometry.getPoseMeters();
-//   }
+  public Pose2d getPose() {
+    return m_odometry.getPoseMeters();
+  }
 
   public MAXSwerveModule getFrontRightModule() {
         return m_frontRight;
@@ -110,17 +112,17 @@ public class DriveSubsystemPigeon2 extends SubsystemBase {
    *
    * @param pose The pose to which to set the odometry.
    */
-//   public void resetOdometry(Pose2d pose) {
-//     m_odometry.resetPosition(
-//         Rotation2d.fromDegrees(m_gyro.getYaw()),
-//         new SwerveModulePosition[] {
-//             m_frontLeft.getPosition(),
-//             m_frontRight.getPosition(),
-//             m_rearLeft.getPosition(),
-//             m_rearRight.getPosition()
-//         },
-//         pose);
-//   }
+  public void resetOdometry(Pose2d pose) {
+    m_odometry.resetPosition(
+        Rotation2d.fromDegrees(m_gyro.getYaw()),
+        new SwerveModulePosition[] {
+            m_frontLeft.getPosition(),
+            m_frontRight.getPosition(),
+            m_rearLeft.getPosition(),
+            m_rearRight.getPosition()
+        },
+        pose);
+  }
 
   /**
    * Method to drive the robot using joystick info.
@@ -203,5 +205,54 @@ public class DriveSubsystemPigeon2 extends SubsystemBase {
     m_frontRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
     m_rearLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
     m_rearRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
+  }
+  public void resetGyro(){
+    m_gyro.reset();
+  }
+
+
+  /**
+   * Sets the swerve ModuleStates.
+   *
+   * @param desiredStates The desired SwerveModule states.
+   */
+  public void setModuleStates(SwerveModuleState[] desiredStates) {
+    SwerveDriveKinematics.desaturateWheelSpeeds(
+        desiredStates, DriveConstants.kMaxSpeedMetersPerSecond);
+    m_frontLeft.setDesiredState(desiredStates[0]);
+    m_frontRight.setDesiredState(desiredStates[1]);
+    m_rearLeft.setDesiredState(desiredStates[0]);
+    m_rearRight.setDesiredState(desiredStates[3]);
+  }
+ 
+  /** Resets the drive encoders to currently read a position of 0. */
+  public void resetEncoders() {
+    m_frontLeft.resetEncoders();
+    m_rearLeft.resetEncoders();
+    m_frontRight.resetEncoders();
+    m_rearRight.resetEncoders();
+  }
+ 
+  /** Zeroes the heading of the robot. */
+  public void zeroHeading() {
+    m_gyro.reset();
+  }
+ 
+  /**
+   * Returns the heading of the robot.
+   *
+   * @return the robot's heading in degrees, from -180 to 180
+   */
+  public double getHeading() {
+    return Rotation2d.fromDegrees(m_gyro.getYaw()).getDegrees();
+  }
+ 
+  /**
+   * Returns the turn rate of the robot.
+   *
+   * @return The turn rate of the robot, in degrees per second
+   */
+  public double getTurnRate() {
+    return m_gyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
   }
 }

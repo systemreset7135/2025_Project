@@ -111,38 +111,8 @@ public class Robot extends TimedRobot {
  
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {
-    m_robotContainer.teleopPeriodic();
-    SmartDashboard.putString("tid", limelightTable.getEntry("tid").getDoubleArray(new double[6]).toString());
-    SmartDashboard.putNumber("tx", limelightTable.getEntry("tx").getDouble(0));
-    SmartDashboard.putNumber("ty", limelightTable.getEntry("ty").getDouble(0));
-    SmartDashboard.putNumber("tv", limelightTable.getEntry("tv").getDouble(0));
-    SmartDashboard.putNumber("tlong", limelightTable.getEntry("tlong").getDouble(0));
-    if (limelightTable.getEntry("tv").getDouble(0) == 1 && limelightTable.getEntry("tlong").getDouble(0) < 500) {
-      // 회전을 멈춥니다
-      System.out.println("Spots Target!");
-     
-      // AprilTag와의 거리를 가져옵니다
-      double distance = limelightTable.getEntry("tlong").getDouble(0);
- 
-      // 만약 AprilTag와의 거리가 2m보다 작으면 로봇을 멈춥니다
-      // 이후에 필요한 경우 움직임을 추가하실 수 있습니다
-      if (distance > LimelightConstants.kMaximumDistance && distance < LimelightConstants.kMinimumDistance) {
-        System.out.println("Reached Destinated Area");
-          // 여기에 추가 동작을 입력하세요
-      }
-      else if(distance < LimelightConstants.kMaximumDistance){
-         
-        System.out.println("Too far"); // 전진 속도를 필요에 따라 조절하세요
-      }
-      else if(distance > LimelightConstants.kMinimumDistance){
-        System.out.println("Too close");
-      }
-    }
-    else {
-        System.out.println("No Target");
-    }
-  }
+  public void teleopPeriodic() {}
+   
  
   @Override
   public void testInit() {

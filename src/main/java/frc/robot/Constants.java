@@ -34,6 +34,7 @@ public final class Constants {
     public static final int kDriverClimbUpButtonIndex = 4;
     public static final int kDriverClimbDownButtonIndex = 2;
     public static final int kDriverAutoClimbButtonIndex = 6;
+    public static final int kDriverResetGyroButtonIndex = 3;
     public static final int kDriverSetXButtonIndex = 1;
   }
   public static final class DriveConstants {
@@ -44,8 +45,8 @@ public final class Constants {
     public static final double kMaxSpeedMetersPerSecond = 3;
     public static final double kMaxAngularSpeed = 3; // radians per second
  
-    public static final double kDirectionSlewRate = 1.2; // radians per second
-    public static final double kMagnitudeSlewRate = 1.8; // percent per second (1 = 100%)
+    public static final double kDirectionSlewRate = 0; // radians per second
+    public static final double kMagnitudeSlewRate = 0.8; // percent per second (1 = 100%)
     public static final double kRotationalSlewRate = 2.0; // percent per second (1 = 100%)
  
     // Chassis configuration
@@ -134,9 +135,9 @@ public final class Constants {
  
   public static final class AutoConstants {
     //DONT TOUCH UNLESS DISCUSSED//DONT TOUCH UNLESS DISCUSSED//DONT TOUCH UNLESS DISCUSSED
-    public static final double kMaxSpeedMetersPerSecond = 2.5;//3
+    public static final double kMaxSpeedMetersPerSecond = 1;//3
     public static final double kMaxAccelerationMetersPerSecondSquared = 2.5;//3
-    public static final double kMaxAngularSpeedRadiansPerSecond = 2.5;
+    public static final double kMaxAngularSpeedRadiansPerSecond = 1;
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = 2.5;
  
     public static final double kPXController = 1;
