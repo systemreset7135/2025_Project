@@ -17,16 +17,17 @@ import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.PS4Controller;
 import edu.wpi.first.wpilibj.XboxController;
- 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.AprilTagSubsystem;
 
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.ClimbingCmd;
-import frc.robot.commands.AprilTagCommand;
+// import frc.robot.commands.AprilTagCommand;
 import frc.robot.commands.TeleopShootCmd;
 import frc.robot.commands.TeleopIntake;
+import frc.robot.commands.AprilTagCommand;
 import frc.robot.commands.AutoShootingCmd;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystemPigeon2;
@@ -67,6 +68,7 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the button bindings
     configureButtonBindings();
+    
  
     // Configure default commands
     m_robotDrive.setDefaultCommand(
@@ -128,11 +130,22 @@ public class RobotContainer {
     new JoystickButton(m_driverController, OIConstants.kDriverClimbUpButtonIndex).whileTrue(new ClimbingCmd(m_ClimberSubsystem, "up"));
     new JoystickButton(m_driverController, OIConstants.kDriverClimbDownButtonIndex).whileTrue(new ClimbingCmd(m_ClimberSubsystem, "down"));
     new JoystickButton(m_driverController, OIConstants.kDriverAutoClimbButtonIndex).whileTrue(new ClimbingCmd(m_ClimberSubsystem, "auto"));
+    new JoystickButton(m_driverController, OIConstants.kDriverResetGyroButtonIndex).whileTrue(new RunCommand(() -> m_robotDrive.resetGyro(), m_robotDrive));
   }
- 
+  /**
+   * Use this to pass the autonomous command to the main {@link Robot} class.
+   *
+   * @return the command to run in autonomous
+   */
   public Command getAutonomousCommand() {
-    return new AprilTagCommand(m_robotDrive, aprilTagSubsystem);
-}
+    // 자동 모드 명령 설정
+        return new SequentialCommandGroup(
+            new AprilTagCommand(aprilTagSubsystem, m_robotDrive)
+            // new WaitCommand(2.0), // 예시: 2초 기다림
+            // new InstantCommand(() -> m_robotDrive.drive(4, 0, 3, true, true), m_robotDrive)
+        );
+   
+  }
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
    *

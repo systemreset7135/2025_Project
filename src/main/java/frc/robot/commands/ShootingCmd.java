@@ -20,7 +20,7 @@ public class ShootingCmd extends Command {
 
   @Override
   public void initialize() {
-    System.out.println("ShootingCmd started!");
+    // System.out.println("ShootingCmd started!");
   }
 
   @Override
@@ -30,7 +30,7 @@ public class ShootingCmd extends Command {
 
   @Override
   public void end(boolean interrupted) {
-    System.out.println("ShootingCmd ended!");
+    //System.out.println("ShootingCmd ended!");
   }
 
   @Override

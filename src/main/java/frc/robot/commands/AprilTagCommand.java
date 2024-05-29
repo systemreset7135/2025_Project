@@ -1,58 +1,44 @@
 package frc.robot.commands;
 
-import frc.robot.subsystems.DriveSubsystemPigeon2;
-import frc.robot.subsystems.AprilTagSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.AprilTagSubsystem;
+import frc.robot.subsystems.DriveSubsystemPigeon2;
 
 public class AprilTagCommand extends Command {
-    private final DriveSubsystemPigeon2 driveSubsystem;
-    private final AprilTagSubsystem limelightSubsystem;
-    private boolean obstacleDetected = false;
+    private final AprilTagSubsystem aprilTagSubsystem;
+    private final DriveSubsystemPigeon2 m_robotDrive;
 
-    public AprilTagCommand(DriveSubsystemPigeon2 driveSubsystem, AprilTagSubsystem limelightSubsystem) {
-        this.driveSubsystem = driveSubsystem;
-        this.limelightSubsystem = limelightSubsystem;
-        addRequirements(driveSubsystem, limelightSubsystem);
+    public AprilTagCommand(AprilTagSubsystem aprilTagSubsystem, DriveSubsystemPigeon2 m_robotDrive) {
+        this.aprilTagSubsystem = aprilTagSubsystem;
+        this.m_robotDrive = m_robotDrive;
+        addRequirements(aprilTagSubsystem);
     }
 
     @Override
     public void initialize() {
-        obstacleDetected = false;
+        // 초기화 코드
     }
 
     @Override
     public void execute() {
-        if (limelightSubsystem.hasValidTarget()) {
-            if (!obstacleDetected) {
-                System.out.println("Obstacle detected!");
-                obstacleDetected = true;
-            }
-            double targetX = limelightSubsystem.getTargetX();
-            double kP = 0.05; // 비례 제어 상수
-            double speed = 0.2; // 천천히 따라가도록 설정
-
-            // 물체의 x 좌표를 기반으로 회전 속도 계산
-            double rotationSpeed = kP * targetX;
-
-            // 물체를 피하기 위한 회피 동작
-            driveSubsystem.drive(0, speed, rotationSpeed, true, true); // 오른쪽으로 회피
+        // AprilTagSubsystem에서 데이터를 가져와서 필요한 작업 수행
+        // 예: 인식 여부에 따라 다른 행동 수행
+        if (aprilTagSubsystem.isTagDetected()) {
+            m_robotDrive.drive(0.5, 0, 0, false, false);
+            // 태그가 인식되면 특정 작업 수행
         } else {
-            if (obstacleDetected) {
-                System.out.println("Obstacle cleared.");
-                obstacleDetected = false;
-            }
-            // 물체가 없으면 앞으로 천천히 이동
-            driveSubsystem.drive(-0.2, 0, 0, true, true);
+            // 태그가 인식되지 않으면 다른 작업 수행
         }
     }
 
     @Override
     public void end(boolean interrupted) {
-        driveSubsystem.drive(0, 0, 0, true, true);
+        m_robotDrive.drive(0, 0, 0, false, false);
+        // 명령 종료 시 실행되는 코드
     }
 
     @Override
     public boolean isFinished() {
-        return false; // 명령이 계속 실행되도록 함
+        return false; // 명령이 언제 종료될지 정의
     }
 }
