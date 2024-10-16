@@ -138,11 +138,16 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // 자동 모드 명령 설정
+    // Command gyroreset = new RunCommand(
+    //   () -> {
+    //     m_robotDrive.resetGyro();
+    //       });
+    
+      
         return new SequentialCommandGroup(
-            new AprilTagCommand(aprilTagSubsystem, m_robotDrive)
-            // new WaitCommand(2.0), // 예시: 2초 기다림
-            // new InstantCommand(() -> m_robotDrive.drive(4, 0, 3, true, true), m_robotDrive)
+          // gyroreset,
+          new AprilTagCommand(aprilTagSubsystem, m_robotDrive)
+            
         );
    
   }
