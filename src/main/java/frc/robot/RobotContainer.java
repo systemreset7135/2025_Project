@@ -24,9 +24,11 @@ import frc.robot.commands.MoveElevatorCommand;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.utils.RRTPlanner;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -35,11 +37,16 @@ import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import frc.robot.commands.ElevatorSetpointCommand;
+import frc.robot.utils.FieldMap;
+import frc.robot.utils.RRTPlanner;
 import java.util.Map;
 import java.util.List;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 
 public class RobotContainer {
+  private final Field2d field = new Field2d();
   // The robot's subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();//바퀴 
   private final ElevatorSubsystem m_elevator = new ElevatorSubsystem();//엘리베이터 
@@ -52,6 +59,8 @@ public class RobotContainer {
     configureButtonBindings();// 특정 버튼이 눌렸을 때 어떤 동작을 할지 미리 설정합니다.
     
     configureShuffleboardWidgets();//test
+
+    SmartDashboard.putData("Field", field);
 
     m_elevator.setDefaultCommand(elevatorCommand);
     // 항상 실행되는 기본 주행 명령 설정 시동 일반모드 
@@ -110,44 +119,17 @@ private void configureShuffleboardWidgets() {
    */
 
 //마치 자율주행 자동차가 출발하기 전에 내비게이션에 경로를 입력하고, 그 경로를 따라 주행하며, 도착하면 스스로 멈추는 것과 같습니다.
-  public Command getAutonomousCommand() {
-    // 자율 주행 시 사용할 경로(trajectory) 생성 설정
-    TrajectoryConfig config = new TrajectoryConfig(
-        AutoConstants.kMaxSpeedMetersPerSecond,//자율주행속도 제한 
-        AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-        // Add kinematics to ensure max speed is actually obeyed
-        .setKinematics(DriveConstants.kDriveKinematics);
+/** 📌 자동 주행 (Autonomous) 실행 */
+public Command getAutonomousCommand() {
+  Pose2d goalPose = new Pose2d(3.620, 5.637, Rotation2d.fromDegrees(-142.582));
 
-    // 경로 생성: 시작점, 중간 웨이포인트, 종료점 설정
-    Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-        // Start at the origin facing the +X direction
-        new Pose2d(0, 0, new Rotation2d(0)), //xy 위치 제어 각도 제어 
-        // Pass through these two interior waypoints, making an 's' curve path
-        List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-        // End 3 meters straight ahead of where we started, facing forward
-        new Pose2d(3, 0, new Rotation2d(0)),
-        config);
-      // 회전 제어를 위한 PID 컨트롤러 생성 (각도 조절)
-    var thetaController = new ProfiledPIDController(
-        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
-    thetaController.enableContinuousInput(-Math.PI, Math.PI);
-     // 스웨르브 드라이브(모듈식 드라이브)를 위한 경로 추종 명령 생성
-    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-        exampleTrajectory,
-        m_robotDrive::getPose, // 로봇의 현재 위치(포즈) 제공
-        DriveConstants.kDriveKinematics,
+    // ❌ 모든 탐색된 노드가 아니라 ✔ 최적 경로만 표시
+    List<Pose2d> rrtPath = RRTPlanner.generateRRTPath(m_robotDrive.getPose(), goalPose, FieldMap.getObstacles());
+    
+    // 🔥 필드에서 실제 이동할 경로만 표시!
+    List<Pose2d> optimizedPath = RRTPlanner.getOptimizedPath(rrtPath);
+    field.getObject("RRT Path").setPoses(optimizedPath);
 
-        // Position controllers
-        new PIDController(AutoConstants.kPXController, 0, 0),
-        new PIDController(AutoConstants.kPYController, 0, 0),
-        thetaController,
-        m_robotDrive::setModuleStates,
-        m_robotDrive);
-
-     // 자율 주행 시작 전, 로봇의 현재 위치를 경로의 시작점으로 초기화
-    m_robotDrive.resetOdometry(exampleTrajectory.getInitialPose()); // 리셋: 현재 위치를 경로 시작점우로 설정, 경로 실행후 모든 모터정지 "시동 끄기 "
-
-      // 경로 추종 명령이 종료된 후, 로봇을 멈추도록 설정
-    return swerveControllerCommand.andThen(() -> m_robotDrive.drive(0, 0, 0, false));
-  }
+    return m_robotDrive.followRRTPath(goalPose);
+}
 }
