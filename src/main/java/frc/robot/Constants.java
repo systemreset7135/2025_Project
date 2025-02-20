@@ -25,7 +25,7 @@ public final class Constants {
   public static final class DriveConstants {//로봇 주행관련 상수 
     // Driving Parameters - Note that these are not the maximum capable speeds of
     // the robot, rather the allowed maximum speeds
-    public static final double kMaxSpeedMetersPerSecond = 0.8; //로봇 최대 속도 
+    public static final double kMaxSpeedMetersPerSecond = 0.8; //3.0도 나쁘지 않아  //로봇 최대 속도 
     public static final double kMaxAngularSpeed = 0.2 * Math.PI; // radians per second 로봇 회전 속도 
 
     // Chassis configuration
@@ -84,6 +84,10 @@ public final class Constants {
     public static final int kDriverSetXIndex = 5; //모양 주차 
   }
 
+  public static final class PathConstants{
+    public static final long KAdStarTimeout = 20000;
+  }
+
   public static final class AutoConstants { //자율주행모드 
     public static final double kMaxSpeedMetersPerSecond = 3; //자율주행모드 최대 속도 
     public static final double kMaxAccelerationMetersPerSecondSquared = 3;//최대 가속도 
@@ -105,7 +109,10 @@ public final class Constants {
     public static final double kFreeSpeedRpm = 5676;//모터의 자유 속도 
   }
   public class ElevatorConstants {
+    public static final double MIN_HEIGHT = 0.0; // 엘리베이터가 이동할 수 있는 최소 높이
+    public static final double MAX_HEIGHT = 48.0; // 엘리베이터가 이동할 수 있는 최대 높이
     public static final int ElevatorCanId = 19;//엘리베이터 모터 
+    public static final double kElevatorHighSetpoint = 48.0; //엘리베이터 최대 높이
     public static final double kP = 0.1; // Proportional gain
     public static final double kI = 0.0; // Integral gain
     public static final double kD = 0.0; // Derivative gain

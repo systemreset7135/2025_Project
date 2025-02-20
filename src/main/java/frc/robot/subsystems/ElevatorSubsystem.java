@@ -1,56 +1,104 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import frc.robot.Constants.ElevatorConstants;
-
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.RelativeEncoder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class ElevatorSubsystem extends SubsystemBase {
-    private final PIDController m_pidController;
-    private final SparkMax m_motor;
-    private final RelativeEncoder m_encoder;
-   
-    private double targetHeight = 0.0; //목표 높이 
-    private Double lastPrintedHeight = null; //마지막으로 출력한 높이 
+    private final SparkMax elevatorMotor;
+    private final RelativeEncoder elevatorEncoder;
+    
+    private PIDController pidController;
+    
+    private double setpoint;
+    private long lastPidUpdate = 0;
+    private static final long PID_UPDATE_INTERVAL_MS = 50; // PID 조절 주기
 
     public ElevatorSubsystem() {
+        elevatorMotor = new SparkMax(ElevatorConstants.ElevatorCanId, MotorType.kBrushless);
+        elevatorEncoder = elevatorMotor.getEncoder();
         
-        m_motor = new SparkMax(ElevatorConstants.ElevatorCanId, MotorType.kBrushless);
-        m_encoder = m_motor.getEncoder();
-        // Initialize PID controller
-        m_pidController = new PIDController(ElevatorConstants.kP, ElevatorConstants.kI, ElevatorConstants.kD);
-        m_pidController.setTolerance(ElevatorConstants.kTolerance);
-        System.out.println("ElevatorSubsystem initialized.");
+        pidController = new PIDController(ElevatorConstants.kP, ElevatorConstants.kI, ElevatorConstants.kD);
+        pidController.setTolerance(ElevatorConstants.kTolerance);
+        
+        setpoint = ElevatorConstants.kSetpoints[0];
     }
 
-    // 목표 높이 설정
-    public void setTargetHeight(double height) {
-        if (Math.abs(targetHeight - height) > 1e-3) { // 목표값이 변경될 때만 출력
-            System.out.println("Elevator moving to new target: " + height + " inches");
-            targetHeight = height;
-            lastPrintedHeight = height;
+    public void setSetpoint(double height) {
+        setpoint = Math.max(ElevatorConstants.MIN_HEIGHT, Math.min(height, ElevatorConstants.MAX_HEIGHT));
+    }
+    
+    public double getSetpoint() {
+        return setpoint;
+    }
+
+    public double getCurrentHeight() {
+        return elevatorEncoder.getPosition();
+    }
+    
+    private void checkLimits() {
+        double currentHeight = getCurrentHeight();
+        if (currentHeight < ElevatorConstants.MIN_HEIGHT) {
+            setSetpoint(ElevatorConstants.MIN_HEIGHT);
+            elevatorMotor.set(0); // Stop motor at minimum height
+            System.out.println("[ElevatorSubsystem] Limit reached: Below MIN_HEIGHT");
+        } else if (currentHeight > ElevatorConstants.MAX_HEIGHT) {
+            setSetpoint(ElevatorConstants.MAX_HEIGHT);
+            elevatorMotor.set(0); // Stop motor at maximum height
+            System.out.println("[ElevatorSubsystem] Limit reached: Above MAX_HEIGHT");
         }
-    }
-    public double getHeight() {
-        return m_encoder.getPosition();
-    }
-
-    // Stop the motor
-    public void stop() {
-        m_motor.set(0);
-        System.out.println("Elevator stopped.");
-    }
-
-    // Check if the elevator is at the desired position
-    public boolean atSetpoint() {
-        return m_pidController.atSetpoint();
     }
 
     @Override
     public void periodic() {
-        // Update PID loop regularly
+        long now = System.currentTimeMillis();
+        if (now - lastPidUpdate >= PID_UPDATE_INTERVAL_MS) {
+            lastPidUpdate = now;
+            double currentHeight = getCurrentHeight();
+            double error = setpoint - currentHeight;
+            double output = MathUtil.clamp(pidController.calculate(currentHeight, setpoint), -1.0, 1.0); // 출력 제한
+
+            elevatorMotor.set(output);
+            
+            // 안전성 체크
+            checkLimits();
+        }
+        
+        // SmartDashboard 업데이트는 여전히 주기적으로
+        SmartDashboard.putNumber("Elevator Setpoint", setpoint);
+        SmartDashboard.putNumber("Elevator Current Height", getCurrentHeight());
+        SmartDashboard.putNumber("Elevator Error", setpoint - getCurrentHeight());
+        SmartDashboard.putNumber("Elevator PID Output", elevatorMotor.get());
+
+        // PID 값을 SmartDashboard에 업데이트
+        SmartDashboard.putNumber("Elevator P", pidController.getP());
+        SmartDashboard.putNumber("Elevator I", pidController.getI());
+        SmartDashboard.putNumber("Elevator D", pidController.getD());
+
+        // SmartDashboard에서 PID 값을 실시간으로 튜닝
+        pidController.setP(SmartDashboard.getNumber("Elevator P", pidController.getP()));
+        pidController.setI(SmartDashboard.getNumber("Elevator I", pidController.getI()));
+        pidController.setD(SmartDashboard.getNumber("Elevator D", pidController.getD()));
+    }
+
+    // PID 값을 직접 설정하는 메서드
+    public void setPID(double kP, double kI, double kD) {
+        pidController.setP(kP);
+        pidController.setI(kI);
+        pidController.setD(kD);
+    }
+    
+    public boolean atSetpoint() {
+        return pidController.atSetpoint();
+    }
+    
+    public void stop() {
+        elevatorMotor.set(0);
     }
 }

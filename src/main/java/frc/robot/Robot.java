@@ -41,15 +41,11 @@ public class Robot extends TimedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    //autonomousInit(): 자율 모드가 시작될 때 한 번 호출됩니다.
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-    //RobotContainer에서 미리 정의된 자율 명령을 받아옵니다.
-   
-
-    
     if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule(); //명령 스케줄 
+      m_autonomousCommand.schedule(); // 자율 명령 스케줄
     }
+   
   }
 
   /** This function is called periodically during autonomous. */
