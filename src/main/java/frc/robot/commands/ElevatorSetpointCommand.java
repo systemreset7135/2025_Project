@@ -18,17 +18,17 @@ public class ElevatorSetpointCommand extends Command {
 
     @Override
     public void execute() {
-        if (setpointChanged) {
-            elevator.setSetpoint(ElevatorConstants.kSetpoints[currentIndex]);
-            setpointChanged = false;
-        }
+        // if (setpointChanged) {
+        //     elevator.setSetpoint(ElevatorConstants.kSetpoints[currentIndex]);
+        //     setpointChanged = false;
+        // }
     }
 
     public void buttonPressed() {
         int newIndex = (currentIndex + 1) % ElevatorConstants.kSetpoints.length;
         if (ElevatorConstants.kSetpoints[newIndex] != ElevatorConstants.kSetpoints[currentIndex]) {
             currentIndex = newIndex;
-            setpointChanged = true;
+            elevator.setSetpoint(ElevatorConstants.kSetpoints[currentIndex]);
             System.out.println("[ElevatorSetpointCommand] New setpoint index: " + currentIndex);
         }
     }

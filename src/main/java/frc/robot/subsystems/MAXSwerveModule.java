@@ -7,6 +7,8 @@ package frc.robot.subsystems;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
@@ -111,4 +113,9 @@ public class MAXSwerveModule {
   public void resetEncoders() {
     m_drivingEncoder.setPosition(0);
   }
+  public void debug() {
+    double rawAngle = m_turningEncoder.getPosition();
+    SmartDashboard.putNumber("Module " + m_drivingSpark.getDeviceId() + " Raw Angle", 
+        Units.radiansToDegrees(rawAngle));
+}
 }

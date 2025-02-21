@@ -7,6 +7,7 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 
 public class Robot extends TimedRobot {
@@ -14,11 +15,12 @@ public class Robot extends TimedRobot {
 
   private RobotContainer m_robotContainer;// 로봇 컨테이너 와 연결 
 
- 
+
   @Override
   public void robotInit() {
    //로봇 처음 켰을때 실행 function 
     m_robotContainer = new RobotContainer();//두뇌 초기화 합니다..그리고 시작 
+    
   }
 
   
@@ -66,7 +68,9 @@ public class Robot extends TimedRobot {
 
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    
+  }
 
   @Override
   public void testInit() {

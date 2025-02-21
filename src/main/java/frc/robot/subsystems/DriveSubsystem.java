@@ -89,6 +89,11 @@ public class DriveSubsystem extends SubsystemBase {
              m_rearLeft.getPosition(),
              m_rearRight.getPosition()
          });
+
+         m_frontLeft.debug();
+         m_frontRight.debug();
+         m_rearLeft.debug();
+         m_rearRight.debug();
  
      // 현재 로봇 위치 가져오기
      Pose2d currentPose = m_odometry.getPoseMeters();

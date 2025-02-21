@@ -40,21 +40,21 @@ public final class Constants {
         new Translation2d(-kWheelBase / 2, -kTrackWidth / 2));
 
     // Angular offsets of the modules relative to the chassis in radians 로봇 섀시 각도오차 보정 
-    public static final double kFrontLeftChassisAngularOffset = -Math.PI / 2;
-    public static final double kFrontRightChassisAngularOffset = 0;
-    public static final double kBackLeftChassisAngularOffset = Math.PI;
-    public static final double kBackRightChassisAngularOffset = Math.PI / 2;
+    public static final double kFrontLeftChassisAngularOffset = Units.degreesToRadians(180);  
+    public static final double kBackRightChassisAngularOffset = Units.degreesToRadians(0);//backright    
+    public static final double kFrontRightChassisAngularOffset = Units.degreesToRadians(0); //front right     
+    public static final double kBackLeftChassisAngularOffset = Units.degreesToRadians(180); //backleft  
 
     // SPARK MAX CAN IDs
     public static final int kFrontLeftDrivingCanId = 11;
-    public static final int kRearLeftDrivingCanId = 13;
-    public static final int kFrontRightDrivingCanId = 15;
-    public static final int kRearRightDrivingCanId = 17;
+    public static final int kRearLeftDrivingCanId = 17;
+    public static final int kFrontRightDrivingCanId = 13;
+    public static final int kRearRightDrivingCanId = 15;
 
     public static final int kFrontLeftTurningCanId = 12;
-    public static final int kRearLeftTurningCanId = 14;
-    public static final int kFrontRightTurningCanId = 16;
-    public static final int kRearRightTurningCanId = 18;
+    public static final int kRearLeftTurningCanId = 18;
+    public static final int kFrontRightTurningCanId = 14;
+    public static final int kRearRightTurningCanId = 16;
 
     public static final boolean kGyroReversed = false;
   }
@@ -68,7 +68,7 @@ public final class Constants {
     public static final double kWheelDiameterMeters = 0.0762; //로봇 바퀴 지름 
     public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI; //바퀴 둘래 
     // 45 teeth on the wheel's bevel gear, 22 teeth on the first-stage spur gear, 15
-    // teeth on the bevel pinion
+    // teeth on the bevel pinio0
     public static final double kDrivingMotorReduction = (45.0 * 22) / (kDrivingMotorPinionTeeth * 15); //모터와 바퀴사의 감속비, 바퀴에 전달되는 회전수가 결정됨 
     public static final double kDriveWheelFreeSpeedRps = (kDrivingMotorFreeSpeedRps * kWheelCircumferenceMeters) //모터의 자유 속도(RPS)를 바퀴의 둘레와 감속비를 고려하여 바퀴가 실제 구동할 수 있는 최대 속도를 계산합니다.
         / kDrivingMotorReduction;
@@ -81,7 +81,7 @@ public final class Constants {
     // public static final int kDriverElevatorL2Index = 2; //엘리베이터 
     // public static final int kDriverElevatorL3Index = 4; //엘리베이터 
     public static final int kDriverResetGyroButtonIndex = 3; //자이로 리셋 
-    public static final int kDriverSetXIndex = 5; //모양 주차 
+    public static final int kDriverSetXIndex = 2; //모양 주차 
   }
 
   public static final class PathConstants{
@@ -111,13 +111,14 @@ public final class Constants {
   public class ElevatorConstants {
     public static final double MIN_HEIGHT = 0.0; // 엘리베이터가 이동할 수 있는 최소 높이
     public static final double MAX_HEIGHT = 48.0; // 엘리베이터가 이동할 수 있는 최대 높이
-    public static final int ElevatorCanId = 19;//엘리베이터 모터 
+    public static final int Elevator1CanId = 23;//엘리베이터 모터 
+    public static final int Elevator2CanId = 24;//shibal
     public static final double kElevatorHighSetpoint = 48.0; //엘리베이터 최대 높이
     public static final double kP = 0.1; // Proportional gain
-    public static final double kI = 0.0; // Integral gain
-    public static final double kD = 0.0; // Derivative gain
+    public static final double kI = 0; // Integral gain
+    public static final double kD = 0; // Derivative gain
     public static final double kTolerance = 0.5; // Acceptable position error in inches
-    public static final double[] kSetpoints = {0.0, 10.0, 20.0, 48.0}; // Target heights in inches
+    public static final double[] kSetpoints = {0.0, 20.0, 30.0, 40.0}; // Target heights in inches
   }
   public static class ShooterConstants {
     public static final int kFrontRightShootPort = 5;
