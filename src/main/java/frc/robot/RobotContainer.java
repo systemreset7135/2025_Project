@@ -15,13 +15,14 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 import frc.robot.Constants.OIConstants;
 import frc.robot.Constants.ElevatorConstants;
-import frc.robot.commands.ElevatorSetpointCommand;
 
 import frc.robot.commands.AdvancedAvoid;
 import frc.robot.commands.AutoCommand;
+import frc.robot.commands.ESCmd;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.DynamicPathGenerator;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.GyroSubsystem;
 import frc.robot.subsystems.Limelightsub;
 
 import com.pathplanner.lib.commands.FollowPathCommand;
@@ -42,24 +43,27 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 public class RobotContainer {
-    private final DriveSubsystem m_drive = new DriveSubsystem();
+    private final GyroSubsystem m_gyro = new GyroSubsystem();
+
+    private final DriveSubsystem m_drive = new DriveSubsystem(m_gyro);
+
     private final ElevatorSubsystem m_elevator = new ElevatorSubsystem();
-    private final ElevatorSetpointCommand m_elevatorCmd = new ElevatorSetpointCommand(m_elevator);
+
     private final DynamicPathGenerator m_pathGenerator = new DynamicPathGenerator();
+
     private final Limelightsub m_limelight = new Limelightsub();
 
     private final PS4Controller m_driverController = new PS4Controller(OIConstants.kDriverControllerPort);
 
     private Command m_cachedAutoCommand = null;
     
-    // 상수 관리를 위한 변수
     private double autoTargetX;
     private double autoTargetY;
 
     public RobotContainer() {
         configureButtonBindings();
         
-        // 상수 초기화
+
         loadAutoTargets(); // 파일에서 타겟 위치 읽어오기
 
         // 기본 명령 설정
@@ -71,7 +75,7 @@ public class RobotContainer {
                 -MathUtil.applyDeadband(m_driverController.getRightX(), OIConstants.kDriveDeadband),
                 true),
             m_drive)
-        );
+        ); 
     }
 
     private void configureButtonBindings() {
@@ -79,10 +83,15 @@ public class RobotContainer {
         new JoystickButton(m_driverController, OIConstants.kDriverSetXIndex)
             .whileTrue(new RunCommand(() -> m_drive.setX(), m_drive));
 
-        // 엘리베이터 버튼: 네모 버튼 (Square, 버튼 1)으로 변경
-        new JoystickButton(m_driverController, 1) // PS4 네모 버튼
-            .onTrue(new RunCommand(() -> m_elevatorCmd.buttonPressed(), m_elevator));
-    }
+            JoystickButton elevatorButton = new JoystickButton(m_driverController, OIConstants.kDriverElevatorL1Index);
+            elevatorButton.onTrue(new ESCmd(m_elevator));
+        }
+
+
+
+
+
+
 
     // 자율 주행 명령 캐싱 및 상수 설정 메서드
     public Command getAutonomousCommand() {

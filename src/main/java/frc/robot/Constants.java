@@ -88,17 +88,22 @@ public final class Constants {
     public static final long KAdStarTimeout = 20000;
   }
 
-  public static final class AutoConstants { //자율주행모드 
+  public static final class AutoConstants { 
     public static final double kMaxSpeedMetersPerSecond = 3; //자율주행모드 최대 속도 
     public static final double kMaxAccelerationMetersPerSecondSquared = 3;//최대 가속도 
     public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;//최대 각속도 
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI; //최대 각가속도 
-    
-    //자율 주행 경로 추종(trajectory following) 시 위치 및 각도 제어에 사용되는 PID 상수입니다.
-    //각각 X, Y 방향과 로봇의 회전(Theta)에 대한 제어에 사용됩니다.
-    public static final double kPXController = 1;
-    public static final double kPYController = 1;
+
+    public static final double kPXController = 1.0;
+    public static final double kIXController = 0.0; 
+    public static final double kDXController = 0.0;
+
+    public static final double kPYController = 1.0;
+    public static final double kIYController = 0.0; 
+    public static final double kDYController = 0.0; 
+
     public static final double kPThetaController = 1;
+
     //
     // TrapezoidProfile.Constraints를 사용하여, 로봇의 회전(각도) 제어에 대한 최대 속도와 가속도 제약 조건을 정의합니다
     public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(
@@ -118,7 +123,7 @@ public final class Constants {
     public static final double kI = 0; // Integral gain
     public static final double kD = 0; // Derivative gain
     public static final double kTolerance = 0.5; // Acceptable position error in inches
-    public static final double[] kSetpoints = {0.0, 20.0, 30.0, 40.0}; // Target heights in inches
+    public static final double[] kSetpoints = {-33.0, -30.0, -20.0, 0.0};
   }
   public static class ShooterConstants {
     public static final int kFrontRightShootPort = 5;

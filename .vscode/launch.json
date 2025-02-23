@@ -6,6 +6,20 @@
   "configurations": [
     {
       "type": "java",
+      "name": "test",
+      "request": "launch",
+      "mainClass": "frc.robot.subsystems.test",
+      "projectName": "2025FRCcode-im"
+    },
+    {
+      "type": "java",
+      "name": "ElevatorSubsystem$TestElevatorReflection",
+      "request": "launch",
+      "mainClass": "frc.robot.subsystems.ElevatorSubsystem$TestElevatorReflection",
+      "projectName": "2025FRCcode-im"
+    },
+    {
+      "type": "java",
       "name": "SettingsTest",
       "request": "launch",
       "mainClass": "frc.robot.until.SettingsTest",

@@ -148,8 +148,8 @@ public class AutoCommand extends Command {
     };
 
     PathFollowingController controller = new PPHolonomicDriveController(
-        new PIDConstants(1.0, 0.0, 0.0),
-        new PIDConstants(1.0, 0.0, 0.0)
+      new PIDConstants(Constants.AutoConstants.kPXController, Constants.AutoConstants.kIXController, Constants.AutoConstants.kDXController),
+      new PIDConstants(Constants.AutoConstants.kPYController, Constants.AutoConstants.kIYController, Constants.AutoConstants.kDYController)
     );
 
     RobotConfig robotConfig = null;

@@ -20,7 +20,7 @@ public final class Configs {
       drivingConfig.encoder.positionConversionFactor(drivingFactor)
                            .velocityConversionFactor(drivingVelFactor);
       drivingConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                               .pid(0.04, 0.0, 0.0)
+                               .pid(0.04, 0.0, 0.01) //전히 확 멈춘다면: P를 더 줄이거나(예: 0.02), D를 증가(예: 0.02).
                                .velocityFF(1.0 / ModuleConstants.kDriveWheelFreeSpeedRps)
                                .outputRange(-1, 1);
 
