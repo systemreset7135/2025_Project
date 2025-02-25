@@ -42,7 +42,7 @@ public class DynamicPathGenerator extends SubsystemBase {
     private static final double MAX_ANG_VEL_RAD_S = Math.toRadians(540.0);
     private static final double MAX_ANG_ACC_RAD_S2= Math.toRadians(720.0);
 
-    private static final long PATH_CALCULATION_TIMEOUT = 20; // 타임아웃 시간 (초)
+    private static final long PATH_CALCULATION_TIMEOUT = Long.MAX_VALUE; // 무한 타임아웃 // 타임아웃 시간 (초)
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private CompletableFuture<PathPlannerPath> pathFuture = null;

@@ -25,7 +25,7 @@ public final class Constants {
   public static final class DriveConstants {//로봇 주행관련 상수 
     // Driving Parameters - Note that these are not the maximum capable speeds of
     // the robot, rather the allowed maximum speeds
-    public static final double kMaxSpeedMetersPerSecond = 0.8; //3.0도 나쁘지 않아  //로봇 최대 속도 
+    public static final double kMaxSpeedMetersPerSecond = 1.5; //3.0도 나쁘지 않아  //로봇 최대 속도 
     public static final double kMaxAngularSpeed = 0.2 * Math.PI; // radians per second 로봇 회전 속도 
 
     // Chassis configuration

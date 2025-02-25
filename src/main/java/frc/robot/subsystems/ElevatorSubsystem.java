@@ -4,146 +4,165 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
-import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import frc.robot.Constants;
 import frc.robot.Constants.ElevatorConstants;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class ElevatorSubsystem extends SubsystemBase {
-    private final SparkMax elevatorMotor1; // CAN ID 23
-    private final SparkMax elevatorMotor2; // CAN ID 24
-    private final Encoder encoder = new Encoder (0,1);
+    private final SparkMax elevatorMotor1;
+    private final SparkMax elevatorMotor2;
+    private final Encoder encoder = new Encoder(0, 1);
     
     private final PIDController pid = new PIDController(0.1, 0, 0);
     
     private double setpoint = 0.0;
-    private static final double MAX_HEIGHT = 50.0;
-    private static final double MIN_HEIGHT = -10.0;
+    private static final double MAX_HEIGHT = 35; // inch
+    private static final double MIN_HEIGHT = -10; // inch
     private int pressCount = 0;
 
-    private final TrapezoidProfile.Constraints constraints 
-        = new TrapezoidProfile.Constraints(0.5, 0.5);
-    private TrapezoidProfile.State goalposition 
-        = new TrapezoidProfile.State(0.0, 0.0);
+    private final TrapezoidProfile.Constraints constraints = new TrapezoidProfile.Constraints(10, 5);
+    private TrapezoidProfile.State goalposition = new TrapezoidProfile.State(0.0, 0.0);
 
-    private double kG = 0.2; 
+    private double kG = 0.2;
+    private double kV = 0.01;
 
-    
+    private boolean isControlActive = false; 
+    private static final double TOLERANCE = 0.5;
 
-   
-
+    // Encoder와 모터 설정
+    private static final double DISTANCE_PER_PULSE = 0.000480315; // inch/pulse
+    private static final int PPR = 8192; // Encoder 사양
 
     public ElevatorSubsystem() {
-        encoder.setDistancePerPulse(0.00122); //1펄스 = 0.00122cm 
-        encoder.reset(); //엔코더 초기화
+        encoder.setDistancePerPulse(DISTANCE_PER_PULSE); 
+        encoder.reset(); 
         
-        // 모터 초기화
         elevatorMotor1 = new SparkMax(ElevatorConstants.Elevator1CanId, MotorType.kBrushed);
         elevatorMotor2 = new SparkMax(ElevatorConstants.Elevator2CanId, MotorType.kBrushed);
-        
+       
         SmartDashboard.putNumber("Elevator/P Gain", 0.1);
         SmartDashboard.putNumber("Elevator/I Gain", 0.0);
         SmartDashboard.putNumber("Elevator/D Gain", 0.0);
-
         SmartDashboard.putNumber("Elevator/Setpoint", 0.0);
-        
+        SmartDashboard.putNumber("Elevator/kG", kG);
+        SmartDashboard.putNumber("Elevator/kV", kV);
     }
-
 
     @Override
     public void periodic() {
         double currentHeight = encoder.getDistance();
         double EncoderRate = encoder.getRate();
+
+        if (isControlActive){
+
+        TrapezoidProfile.State currentState = new TrapezoidProfile.State(currentHeight, EncoderRate);
+        TrapezoidProfile profile = new TrapezoidProfile(constraints);
+        TrapezoidProfile.State nextSetpoint = profile.calculate(0.02, currentState, goalposition);//0.02초마다 어디 쯤 가있을시를 계산 하는거야 
+
+        double targetPosition = nextSetpoint.position;//0.02초 동안 올라갈 수 있는 거리
+        double targetVelocity = nextSetpoint.velocity;//0.02초 동안 올라갈 수 있는 속도
+
+        double motorCurrent = elevatorMotor1.getOutputCurrent();
+        kG = 0.2 + (motorCurrent / 10.0) * 0.1 + (currentHeight / MAX_HEIGHT) * 0.05;
+        kV = 0.01 + Math.abs(targetVelocity) * 0.0003937;
         
-        double Orioutput = pid.calculate(currentHeight, setpoint);
+        double Orioutput = pid.calculate(currentHeight, targetPosition) + kV * targetVelocity + kG;
+        double realoutput = MathUtil.clamp(Orioutput, -0.5, 0.5);
 
-        double realoutput = Math.max(-0.5, Math.min(0.5, Orioutput));
-
-        if (currentHeight >= MAX_HEIGHT && realoutput > 0 ){
+        if (currentHeight >= MAX_HEIGHT && realoutput > 0) {
             realoutput = 0; 
-        } else if (currentHeight <= MIN_HEIGHT && realoutput < 0){
+        } else if (currentHeight <= MIN_HEIGHT && realoutput < 0) {
             realoutput = 0;
         }
 
         elevatorMotor1.set(realoutput);
         elevatorMotor2.set(realoutput);
 
+        // 실제 회전 수 계산 (방향 구분)
+        double actualPulses = encoder.get();
+        double actualRotations = actualPulses / PPR;
 
-        Debug(currentHeight, realoutput, Orioutput, EncoderRate);
+        // SmartDashboard에 추가 정보 표시
+        SmartDashboard.putNumber("Elevator/Actual Rotations", actualRotations); // 양수: 위로, 음수: 아래로
+        SmartDashboard.putNumber("Elevator/Speed (inch/s)", EncoderRate); // 속도 표시
 
+        Debug(currentHeight, realoutput, Orioutput, EncoderRate, targetPosition, targetVelocity, motorCurrent);
+    }else {
+        elevatorMotor1.set(0);
+        elevatorMotor2.set(0); 
+    }
     }
 
-    public double getHeight(){
-        
+    public double getHeight() {
         return encoder.getDistance();
-
     }
-
 
     public void incrementPressCount() {
         pressCount++;
         double targetHeight;
         switch (pressCount % 3) {
-            case 1: targetHeight = 33.0; break;
-            case 2: targetHeight = 20.0; break;
-            case 0: targetHeight = 0.0; break;
+            case 1: targetHeight = 33.0; break; // inch
+            case 2: targetHeight = 20.0; break; // inch
+            case 0: targetHeight = 0.0; break; // inch
             default: targetHeight = 0.0;
         }
         setHeight(targetHeight);
-        System.out.println("ESCmd initialized, pressCount: " + pressCount + ", targetHeight: " + targetHeight);
+        isControlActive = true;
+        SmartDashboard.putNumber("Elevator/Setpoint (inch)", targetHeight);
+        calculateTargetRotations(targetHeight); // 목표 회전 수 계산
+        System.out.println("ESCmd initialized, pressCount: " + pressCount + ", targetHeight: " + targetHeight + " inch");
     }
 
-
-    public void setHeight(double height){
-        if (height >= MIN_HEIGHT && height <= MAX_HEIGHT) { // 범위 체크
-            setpoint = height; // 목표 높이를 설정 (예: 33.0)
-        } else {
-            setpoint = MIN_HEIGHT; // 범위를 벗어나면 최소 높이로 설정
-        }
+    public void setHeight(double height) {
+        setpoint = MathUtil.clamp(height, MIN_HEIGHT, MAX_HEIGHT);
+        goalposition = new TrapezoidProfile.State(setpoint, 0.0);
     }
 
-    public double getsetpointvisual(){
-
+    public double getsetpointvisual() {
         return setpoint;
     }
 
-
-
-    private void Debug(double currentHeight, double lastOutput, double Orioutput, double EncoderRate) {
-        // -- 대시보드에 현재값 표시 --
-        SmartDashboard.putNumber("Elevator/Setpoint", setpoint);
-        SmartDashboard.putNumber("Elevator/Current Height", currentHeight);
-        SmartDashboard.putNumber("Elevator/PID Output", lastOutput);
+    private void Debug(double currentHeight, double realoutput, double Orioutput, double EncoderRate, double targetPosition, double targetVelocity, double motorCurrent) {
+        
+        SmartDashboard.putNumber("Elevator/Current Height (inch)", currentHeight);
         SmartDashboard.putNumber("Elevator/original PID Output", Orioutput);
+        SmartDashboard.putNumber("Elevator/futurePosition", targetPosition);
+        SmartDashboard.putNumber("Elevator/futureVelocity", targetVelocity);
+        SmartDashboard.putNumber("Elevator/Motor Current (A)", motorCurrent);
+        SmartDashboard.putNumber("Elevator/realoutput", realoutput);
 
-        // -- 대시보드에서 PID 게인, Setpoint 읽어오기 --
         double p = SmartDashboard.getNumber("Elevator/P Gain", pid.getP());
         double i = SmartDashboard.getNumber("Elevator/I Gain", pid.getI());
         double d = SmartDashboard.getNumber("Elevator/D Gain", pid.getD());
-    if (p != pid.getP()) {
-        System.out.println("New input P Gain: " + p);
-        pid.setP(p);
-    }
-    if (i != pid.getI()) {
-        System.out.println("New input I Gain: " + i);
-        pid.setI(i);
-    }
-    if (d != pid.getD()) {
-        System.out.println("New input D Gain: " + d);
-        pid.setD(d);
-    }
 
-        // Setpoint도 대시보드 값으로 업데이트 (옵션)
+        if (p != pid.getP()) {
+            System.out.println("New input P Gain: " + p);
+            pid.setP(p);
+        }
+        if (i != pid.getI()) {
+            System.out.println("New input I Gain: " + i);
+            pid.setI(i);
+        }
+        if (d != pid.getD()) {
+            System.out.println("New input D Gain: " + d);
+            pid.setD(d);
+        }
+
         double newSetpoint = SmartDashboard.getNumber("Elevator/Setpoint", setpoint);
         if (newSetpoint != setpoint) {
             System.out.println("New input Setpoint: " + newSetpoint);
             setHeight(newSetpoint);
+        }
     }
+
+    private void calculateTargetRotations(double targetHeight) {
+        double targetPulses = targetHeight / DISTANCE_PER_PULSE;
+        double targetRotations = targetPulses / PPR;
+        SmartDashboard.putNumber("Elevator/Target Rotations", targetRotations);
+        System.out.println("Target Rotations: " + targetRotations);
+    }//모터회전수 계산 하는 로직
 }
 
 // public void Testvelocitymax (double output){
@@ -213,7 +232,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     //     }
     // }
 
-}
+
 
 // 2. 어떤 상황에서 어떻게 조정하면 좋을까?
 // 2.1 PID 튜닝 시나리오

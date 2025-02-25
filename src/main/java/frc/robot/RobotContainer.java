@@ -85,8 +85,10 @@ public class RobotContainer {
 
             JoystickButton elevatorButton = new JoystickButton(m_driverController, OIConstants.kDriverElevatorL1Index);
             elevatorButton.onTrue(new ESCmd(m_elevator));
-        }
+        new JoystickButton(m_driverController, 4).whileTrue(new RunCommand(() -> m_drive.zeroHeading(), m_drive));
 
+        }
+        
 
 
 
@@ -95,8 +97,14 @@ public class RobotContainer {
 
     // 자율 주행 명령 캐싱 및 상수 설정 메서드
     public Command getAutonomousCommand() {
+        m_gyro.zeroHeading();   
         if (m_cachedAutoCommand == null) {
-            m_cachedAutoCommand = new AutoCommand(m_drive, m_limelight, m_pathGenerator, autoTargetX, autoTargetY);
+            m_cachedAutoCommand = new AutoCommand(
+                m_drive, 
+                m_limelight, 
+                m_pathGenerator, 
+                autoTargetX, 
+                autoTargetY);
         }
         return m_cachedAutoCommand;
     }
@@ -110,15 +118,10 @@ public class RobotContainer {
 
     // 타겟 위치 파일에서 읽어오기
     private void loadAutoTargets() {
-        try {
-            JSONObject targets = (JSONObject) new JSONParser().parse(new FileReader("targets.json"));
-            autoTargetX = ((Number) targets.get("x")).doubleValue();
-            autoTargetY = ((Number) targets.get("y")).doubleValue();
-            m_cachedAutoCommand = null;
-        } catch (IOException | ParseException e) {
-            System.err.println("Failed to load auto targets: " + e.getMessage());
-            autoTargetX = 1.0; // 기본값 설정
-            autoTargetY = 2.0;
-        }
+        // targets.json 파일을 무시하고 항상 기본값 사용
+        autoTargetX = 2; // 기본값 설정
+        autoTargetY =  7;
+        m_cachedAutoCommand = null; // 캐시 초기화
+        System.out.println("목표 위치를 기본값으로 설정 - X: " + autoTargetX + "m, Y: " + autoTargetY + "m");
     }
 }

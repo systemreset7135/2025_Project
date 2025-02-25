@@ -41,9 +41,8 @@ public class AutoCommand extends Command {
   private static final double TIMEOUT_PER_METER = 1.0; // 거리당 추가 시간
   private static final double MAX_TIMEOUT_SEC = 30.0; // 최대 타임아웃 시간
   private double dynamicTimeout;
-  
-  // 최대 재시도 횟수 설정
-  private static final int MAX_ATTEMPTS = 3; 
+
+  private static final int MAX_ATTEMPTS = 3; //3번 재시도
   private int autoAttemptCount = 0;
 
   public AutoCommand(DriveSubsystem drive, Limelightsub limelight,
@@ -60,27 +59,31 @@ public class AutoCommand extends Command {
   public void initialize() {
     finished = false;
     autoAttemptCount = 0;
-    startTime = Timer.getFPGATimestamp();
-    System.out.println("[AutoCommand] 초기화 시작");
+    startTime = Timer.getFPGATimestamp();// 시작 시간 설정 
+    
+    System.out.println("[AutoCommand]  INTIACALED");
 
-    // 시작 위치와 목표 위치 설정
-    Translation2d startPos = new Translation2d(7.2, 4.15);
-    Translation2d goalPos = new Translation2d(xGoal, yGoal);
-    System.out.println("  StartPos = " + startPos + ", GoalPos = " + goalPos);
+    Pose2d currentPose = drive.getPose();
 
-    // 동적 타임아웃 계산
-    double distance = startPos.getDistance(goalPos); 
+
+
+    Translation2d startPos = currentPose.getTranslation();// 시작 위치
+    Translation2d goalPos = new Translation2d(xGoal, yGoal);//목표 위치치
+    System.out.println(startPos + "=>" + goalPos);
+
+
+    double distance = startPos.getDistance(goalPos); //사이 거리
     dynamicTimeout = Math.min(BASE_TIMEOUT_SEC + (distance * TIMEOUT_PER_METER), MAX_TIMEOUT_SEC);
 
-    System.out.println("[AutoCommand] Dynamic timeout set to: " + dynamicTimeout + " seconds");
+    System.out.println("[AutoCommand] Dynamictime " + dynamicTimeout + " seconds");
 
-    // AD* 경로 생성 시작
-    pathGenerator.startPathGeneration(startPos, goalPos);
+
+    pathGenerator.startPathGeneration(startPos, goalPos);//경로 생성
   }
 
   @Override
   public void execute() {
-    double now = Timer.getFPGATimestamp();
+    double now = Timer.getFPGATimestamp(); //경로 생성 시간
     if (pathGenerator.isNewPathAvailable()) {
       PathPlannerPath newPath = pathGenerator.buildPathWithConstraints();
       if (newPath == null) {
@@ -88,26 +91,25 @@ public class AutoCommand extends Command {
           autoAttemptCount++;
           System.err.println("[AutoCommand] \u001B[31mPath build failed on attempt " + 
                              autoAttemptCount + " of " + MAX_ATTEMPTS + " -> Retrying\u001B[0m");
-          // 재시도: 타임아웃 및 경로 생성 재요청
-          startTime = Timer.getFPGATimestamp();
+          startTime = Timer.getFPGATimestamp(); 
           retryPathGeneration();
         } else {
           System.err.println("[AutoCommand] \u001B[31mPath build failed after " + MAX_ATTEMPTS + " attempts -> finishing\u001B[0m");
           finished = true;
         }
-      } else {
+      } else {//빌드 성공시
         System.out.println("[AutoCommand] \u001B[32mPath build success! Scheduling FollowPath and Avoid\u001B[0m");
         scheduleFollowAndAvoid(newPath);
         finished = true;
       }
-    } else if (now - startTime > dynamicTimeout) {
+    } else if (now - startTime > dynamicTimeout) {//시간 너무 오래 걸림
       System.err.println("[AutoCommand] \u001B[33mDynamic Timeout -> finishing\u001B[0m");
       finished = true;
     }
   }
 
   private void retryPathGeneration() {
-    Translation2d startPos = new Translation2d(7.2, 4.15);
+    Translation2d startPos = new Translation2d(6, 7);
     Translation2d goalPos = new Translation2d(xGoal, yGoal);
     pathGenerator.startPathGeneration(startPos, goalPos);
   }
@@ -140,8 +142,8 @@ public class AutoCommand extends Command {
       return new InstantCommand(() -> System.out.println("FollowPathCommand: 경로가 null입니다."));
     }
 
-    Supplier<Pose2d> poseSupplier = drive::getPose;
-    Supplier<ChassisSpeeds> speedsSupplier = drive::getChassisSpeeds;
+    Supplier<Pose2d> poseSupplier = drive::getPose;//현재 위치 방향 
+    Supplier<ChassisSpeeds> speedsSupplier = drive::getChassisSpeeds; //속도
     BiConsumer<ChassisSpeeds, DriveFeedforwards> output = (speeds, ffs) -> {
       var states = Constants.DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds);
       drive.setModuleStates(states);
@@ -150,7 +152,7 @@ public class AutoCommand extends Command {
     PathFollowingController controller = new PPHolonomicDriveController(
       new PIDConstants(Constants.AutoConstants.kPXController, Constants.AutoConstants.kIXController, Constants.AutoConstants.kDXController),
       new PIDConstants(Constants.AutoConstants.kPYController, Constants.AutoConstants.kIYController, Constants.AutoConstants.kDYController)
-    );
+    );//여기서 pid 값을 설정
 
     RobotConfig robotConfig = null;
     try {
