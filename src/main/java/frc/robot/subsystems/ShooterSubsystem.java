@@ -4,8 +4,8 @@
 package frc.robot.subsystems;
  
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
-import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -14,10 +14,7 @@ import frc.robot.Constants.ShooterConstants;
  
 public class ShooterSubsystem extends SubsystemBase {
  
-  WPI_VictorSPX frontRightShoot = new WPI_VictorSPX(ShooterConstants.kFrontRightShootPort);
-  WPI_VictorSPX frontLeftShoot = new WPI_VictorSPX(ShooterConstants.kFrontLeftShootPort);
-  WPI_TalonSRX rearRightShoot = new WPI_TalonSRX(ShooterConstants.kRearRightShootPort);
-  WPI_TalonSRX rearLeftShoot = new WPI_TalonSRX(ShooterConstants.kRearLeftShootPort);
+  SparkMax shooter = new SparkMax(ShooterConstants.kShooterPort, MotorType.kBrushed);
   public boolean shooting = false;
   public boolean haveShot = false;
  
@@ -36,10 +33,7 @@ public class ShooterSubsystem extends SubsystemBase {
   }
   public void shoot(String direction){
     if(direction == "in"){
-      rearRightShoot.set(ControlMode.PercentOutput, ShooterConstants.kIntakeSpeed);
-      rearLeftShoot.set(ControlMode.PercentOutput, -ShooterConstants.kIntakeSpeed);
-      frontRightShoot.set(ControlMode.PercentOutput, ShooterConstants.kIntakeSpeed);
-      frontLeftShoot.set(ControlMode.PercentOutput, -ShooterConstants.kIntakeSpeed);
+      shooter.set(ShooterConstants.kIntakeSpeed);
     }
     // if((direction == "out"  && shooting == false) || shooting == true){
     //   timer.start();
@@ -62,42 +56,36 @@ public class ShooterSubsystem extends SubsystemBase {
     //     timer.stop();
     //   }
     // }
-    else if((direction == "auto"  && shooting == false) || shooting == true){
-      if(haveShot){
-        return;
-      }
-      timer.start();
-      shooting = true;
-      SmartDashboard.putNumber("time dddd", timer.get());
-      frontRightShoot.set(ControlMode.PercentOutput, -ShooterConstants.kShootSpeed);
-      frontLeftShoot.set(ControlMode.PercentOutput, ShooterConstants.kShootSpeed);
-      SmartDashboard.putNumber("frontRight", frontRightShoot.getMotorOutputPercent());
-      SmartDashboard.putNumber("frontLeft", frontLeftShoot.getMotorOutputVoltage());
-      if(timer.get() > ShooterConstants.kShootChargeTime && timer.get() < ShooterConstants.kShootChargeTime + 1.5){
-        rearRightShoot.set(ControlMode.PercentOutput, -ShooterConstants.kShootSpeed);
-        rearLeftShoot.set(ControlMode.PercentOutput, ShooterConstants.kShootSpeed);
-        SmartDashboard.putNumber("rearRight", rearRightShoot.getMotorOutputPercent());
-        SmartDashboard.putNumber("rearLeft", rearLeftShoot.getMotorOutputPercent());
+    // else if((direction == "auto"  && shooting == false) || shooting == true){
+    //   if(haveShot){
+    //     return;
+    //   }
+    //   timer.start();
+    //   shooting = true;
+    //   SmartDashboard.putNumber("time dddd", timer.get());
+    //   frontRightShoot.set(ControlMode.PercentOutput, -ShooterConstants.kShootSpeed);
+    //   frontLeftShoot.set(ControlMode.PercentOutput, ShooterConstants.kShootSpeed);
+    //   SmartDashboard.putNumber("frontRight", frontRightShoot.getMotorOutputPercent());
+    //   SmartDashboard.putNumber("frontLeft", frontLeftShoot.getMotorOutputVoltage());
+    //   if(timer.get() > ShooterConstants.kShootChargeTime && timer.get() < ShooterConstants.kShootChargeTime + 1.5){
+    //     rearRightShoot.set(ControlMode.PercentOutput, -ShooterConstants.kShootSpeed);
+    //     rearLeftShoot.set(ControlMode.PercentOutput, ShooterConstants.kShootSpeed);
+    //     SmartDashboard.putNumber("rearRight", rearRightShoot.getMotorOutputPercent());
+    //     SmartDashboard.putNumber("rearLeft", rearLeftShoot.getMotorOutputPercent());
        
-      }
-      if(timer.get() > ShooterConstants.kShootChargeTime + 1.5){
-        shooting = false;
-        timer.reset();
-        timer.stop();
-        haveShot = true;
-      }
-    }
-    else if(direction == "in"){
-      rearRightShoot.set(ControlMode.PercentOutput, -ShooterConstants.kIntakeSpeed);
-      rearLeftShoot.set(ControlMode.PercentOutput, ShooterConstants.kIntakeSpeed);
-      frontRightShoot.set(ControlMode.PercentOutput, -ShooterConstants.kIntakeSpeed);
-      frontLeftShoot.set(ControlMode.PercentOutput, ShooterConstants.kIntakeSpeed);
+    //   }
+    //   if(timer.get() > ShooterConstants.kShootChargeTime + 1.5){
+    //     shooting = false;
+    //     timer.reset();
+    //     timer.stop();
+    //     haveShot = true;
+    //   }
+    // }
+    else if(direction == "out"){
+      shooter.set(-ShooterConstants.kIntakeSpeed);
     }
     else{
-      rearRightShoot.set(ControlMode.PercentOutput, 0);
-      rearLeftShoot.set(ControlMode.PercentOutput, 0);
-      frontRightShoot.set(ControlMode.PercentOutput, 0);
-      frontLeftShoot.set(ControlMode.PercentOutput, 0);
+      shooter.set(0);
     }
   }
 }

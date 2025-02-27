@@ -11,6 +11,7 @@ import frc.robot.subsystems.DynamicPathGenerator;
 import frc.robot.subsystems.Limelightsub;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.robot.Constants;
@@ -69,6 +70,7 @@ public class AutoCommand extends Command {
 
     Translation2d startPos = currentPose.getTranslation();// 시작 위치
     Translation2d goalPos = new Translation2d(xGoal, yGoal);//목표 위치치
+    Rotation2d startRotation = currentPose.getRotation();//시작 방향
     System.out.println(startPos + "=>" + goalPos);
 
 

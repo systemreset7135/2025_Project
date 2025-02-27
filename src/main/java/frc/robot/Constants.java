@@ -57,6 +57,7 @@ public final class Constants {
     public static final int kRearRightTurningCanId = 16;
 
     public static final boolean kGyroReversed = false;
+    public static final int kPigeonCanId = 0;
   }
 
   public static final class ModuleConstants { //드라이브 모터와 관련되어 있는것 
@@ -80,8 +81,12 @@ public final class Constants {
     public static final int kDriverElevatorL1Index = 1; //엘리베이터 
     // public static final int kDriverElevatorL2Index = 2; //엘리베이터 
     // public static final int kDriverElevatorL3Index = 4; //엘리베이터 
-    public static final int kDriverResetGyroButtonIndex = 3; //자이로 리셋 
-    public static final int kDriverSetXIndex = 2; //모양 주차 
+    public static final int kDriverResetGyroButtonIndex = 1; //자이로 리셋 
+    public static final int kDriverResetElevatorIndex = 4;
+    public static final int kDriverShooterIntakeIndex = 6;
+    public static final int kDriverShooterShootIndex = 5;
+    public static final int kDriverSetXIndex = 2;
+    public static final int kDriverMode = 14;
   }
 
   public static final class PathConstants{
@@ -110,28 +115,26 @@ public final class Constants {
         kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
   }
 
+
   public static final class NeoMotorConstants {//Neo모터 
     public static final double kFreeSpeedRpm = 5676;//모터의 자유 속도 
   }
   public class ElevatorConstants {
-    public static final double MIN_HEIGHT = 0.0; // 엘리베이터가 이동할 수 있는 최소 높이
-    public static final double MAX_HEIGHT = 48.0; // 엘리베이터가 이동할 수 있는 최대 높이
-    public static final int Elevator1CanId = 23;//엘리베이터 모터 
-    public static final int Elevator2CanId = 24;//shibal
-    public static final double kElevatorHighSetpoint = 48.0; //엘리베이터 최대 높이
-    public static final double kP = 0.1; // Proportional gain
-    public static final double kI = 0; // Integral gain
-    public static final double kD = 0; // Derivative gain
-    public static final double kTolerance = 0.5; // Acceptable position error in inches
-    public static final double[] kSetpoints = {-33.0, -30.0, -20.0, 0.0};
+    public static final int kEncoderDIOPortA = 0;
+    public static final int kEncoderDIOPortB = 1;
+    public static final int kElevator1CanId = 23; 
+    public static final int kElevator2CanId = 24;
+    public static final double[] kSetpoints = {0.41, 1.87, 4.15, 8};
+    public static final double kEncoderDistancePerPulse = 0.0005752429199218;
+    public static final double kElevatorSetpointSpeed = 0.3;
+    public static final double kElevatorManualSpeed = 0.4;
+    public static final double kElevatorSetpointTolerance = 0.05;
   }
   public static class ShooterConstants {
-    public static final int kFrontRightShootPort = 5;
-    public static final int kFrontLeftShootPort = 4;
-    public static final int kRearRightShootPort = 2;
-    public static final int kRearLeftShootPort = 1;
+    public static final int kShooterPort = 21;
     public static final double kShootChargeTime = 1.5;
     public static final double kShootSpeed = 1;
     public static final double kIntakeSpeed = -0.5;
   }
 }
+

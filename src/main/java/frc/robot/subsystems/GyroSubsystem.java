@@ -4,19 +4,28 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConstants;
 
+
 public class GyroSubsystem extends SubsystemBase {
     // Pigeon2 자이로 센서
     private final Pigeon2 m_gyro;
+    private boolean isGyroConnected;
+    private double yawoffset = 0.0;
 
     /** GyroSubsystem 생성자 */
     public GyroSubsystem() {
-        m_gyro = new Pigeon2(0); // CAN ID 0으로 설정 (필요 시 상수로 관리 가능)
+        m_gyro = new Pigeon2(DriveConstants.kPigeonCanId); 
+        isGyroConnected = checkConnection();
+        if(!isGyroConnected) {
+            System.out.println("[GyroSubsystem] no Gyro connection");
+        }
+
     }
 
     @Override
@@ -24,6 +33,21 @@ public class GyroSubsystem extends SubsystemBase {
         // SmartDashboard에 자이로 데이터 출력 (선택 사항)
         SmartDashboard.putNumber("Pigeon Yaw", getYaw());
     }
+    public void setYaw(double yawDegrees) {
+        m_gyro.setYaw(yawDegrees);
+    }
+
+    
+    private boolean checkConnection() {
+        m_gyro.getVersion();
+        return BaseStatusSignal.isAllGood();
+    }
+    
+
+    public boolean isGyroConnected() {
+        return isGyroConnected;
+    }
+
 
     /**
      * 자이로 센서를 재설정하여 현재 방향을 0으로 만듭니다.

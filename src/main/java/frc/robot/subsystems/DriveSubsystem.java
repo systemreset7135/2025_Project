@@ -15,13 +15,23 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.networktables.GenericEntry;
 import frc.robot.Constants;
 import frc.robot.Constants.DriveConstants;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.RotationTarget;
+import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 
@@ -52,17 +62,21 @@ public class DriveSubsystem extends SubsystemBase {
   private GenericEntry poseXEntry;
   private GenericEntry poseYEntry;
   private GenericEntry poseRotationEntry;
-  private final Field2d fieldSim = new Field2d();
+  
 
   SwerveDriveOdometry m_odometry;
 
   private final PIDController pidControllerX;
   private final PIDController pidControllerY;
+  private final Field2d fieldSim;
 
 
   public DriveSubsystem(GyroSubsystem gyro) {
     this.m_gyro = gyro;
-    SmartDashboard.putData("Field2D", fieldSim);
+    this.fieldSim = new Field2d();
+    SmartDashboard.putData("Field", fieldSim);
+    
+   
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
 
      var tab = Shuffleboard.getTab("Drive");
@@ -201,6 +215,60 @@ public double getHeading() {
 public double getTurnRate() {
     return m_gyro.getTurnRate();
 }
+
+public Field2d getFieldSim() {
+  return fieldSim;
+}
+public void drawPathOnField(String name, PathPlannerPath path) {
+        // 1) PathPlannerPath에서 모든 Pose2d 리스트 가져오기
+        List<Pose2d> pathPoses = path.getPathPoses(); // 기본 위치 정보 가져오기
+
+        // 2) PathPlannerPath에서 회전 목표 가져오기
+        List<RotationTarget> rotationTargets = path.getRotationTargets();
+        if (rotationTargets == null || rotationTargets.isEmpty()) {
+            System.out.println("Warning: No rotation targets found in the path. Using default rotation (180 degrees)...");
+        }
+
+        // 3) 각 포인트에 해당하는 회전을 매핑하여 새로운 Pose2d 리스트 생성
+        List<Pose2d> correctedPathPoses = new ArrayList<>();
+        for (int i = 0; i < pathPoses.size(); i++) {
+            Pose2d pose = pathPoses.get(i);
+            Rotation2d rotation = pose.getRotation(); // 기본적으로 getPathPoses()에서 가져온 회전
+
+            
+            if (rotationTargets != null && !rotationTargets.isEmpty() && i < rotationTargets.size()) {
+                RotationTarget rotationTarget = rotationTargets.get(i);
+                rotation = rotationTarget.rotation(); // RotationTarget.rotation()으로 회전 값 가져오기
+            } else {
+                // rotationTargets가 없으면, 기본값(예: 180도)으로 강제 설정
+                rotation = Rotation2d.fromDegrees(180); // PathPlanner GUI 설정(180도) 강제 적용
+            }
+
+            // 새로운 Pose2d 생성 (X, Y는 유지, 회전은 수정됨)
+            correctedPathPoses.add(new Pose2d(pose.getTranslation(), rotation));
+        }
+
+        // 4) Field2d에서 수정된 경로를 표시
+        FieldObject2d pathObject = fieldSim.getObject(name);
+        pathObject.setPoses(correctedPathPoses); // 수정된 Pose2d 리스트 사용
+
+       
+    }
+
+    //
+// public void drawPathOnField(String name, PathPlannerPath path) {
+//   // 1) PathPlannerPath에서 모든 Pose2d 리스트 가져오기
+//   List<Pose2d> pathPoses = path.getPathPoses(); // ✅ getPathPoses() 사용
+
+//   // 2) Field2d에서 해당 오브젝트에 경로를 추가
+//   FieldObject2d pathObject = fieldSim.getObject(name);
+//   pathObject.setPoses(pathPoses); // ✅ setPoses() 사용 (setTrajectory() X)
+// }
+
+
+
+
+
 
   public ChassisSpeeds getChassisSpeeds() {
     SwerveModuleState[] moduleStates = {
