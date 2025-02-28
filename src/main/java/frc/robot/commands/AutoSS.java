@@ -18,7 +18,7 @@ public class AutoSS extends Command {
     @Override
     public void initialize() {
         startTime = Timer.getFPGATimestamp();
-        shooterSubsystem.shooter.set(-0.3); 
+        shooterSubsystem.shooter.set(-0.4); 
     }
 
     @Override

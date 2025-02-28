@@ -80,7 +80,7 @@ public final class Constants {
     public static final int kDriverControllerPort = 0; //usb 조종기 포트번호 
     public static final int kDriverControllerPort2 = 1; //usb 조종기 포트번호 
     public static final double kDriveDeadband = 0.1; // 조종기 미세한 움지김 무시 
-    public static final int kDriverElevatorL1Index = 1; //엘리베이터 
+    public static final int kDriverChangeSpeedIndex = 1; //엘리베이터 
     // public static final int kDriverElevatorL2Index = 2; //엘리베이터 
     // public static final int kDriverElevatorL3Index = 4; //엘리베이터 
     public static final int kDriverResetGyroButtonIndex = 1; //자이로 리셋 
@@ -126,7 +126,7 @@ public final class Constants {
     public static final int kEncoderDIOPortB = 1;
     public static final int kElevator1CanId = 23; 
     public static final int kElevator2CanId = 24;
-    public static final double[] kSetpoints = {0.5, 2.3, 5.4, 8.5};
+    public static final double[] kSetpoints = {0, 2.3, 4.5, 8.2};
     public static final double kEncoderDistancePerPulse = 0.0005752429199218;
     public static final double kElevatorSetpointSpeed = 0.3;
     public static final double kElevatorManualSpeed = 0.25;

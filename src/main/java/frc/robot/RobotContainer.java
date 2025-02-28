@@ -60,12 +60,13 @@ public class RobotContainer {
     private final Limelightsub m_limelight = new Limelightsub();
     private final ShooterSubsystem m_shooter = new ShooterSubsystem();
     private final PS4Controller m_driverController = new PS4Controller(OIConstants.kDriverControllerPort);
-    private final PS4Controller m_driverController2 = new PS4Controller(OIConstants.kDriverControllerPort2);
+    //private final PS4Controller m_driverController2 = new PS4Controller(OIConstants.kDriverControllerPort2);
     private Command m_cachedAutoCommand = null;
     private double autoTargetX;
     private double autoTargetY;
-    private boolean isAutoMode = true; // 엘리베이터 모드: Setpoint 모드 기본 (true = SEC, false = MEC)
+    private boolean isFastMode = true; // 엘리베이터 모드: Setpoint 모드 기본 (true = SEC, false = MEC)
     private int setpointIndex = 0; // Setpoint 순환 인덱스
+    private double driveSpeedMode = 1;
 
     public RobotContainer() {
         configureButtonBindings();
@@ -86,7 +87,7 @@ public class RobotContainer {
                 true),
             m_drive)
         );
-        m_elevator.setDefaultCommand(new MEC(m_elevator, m_driverController, m_driverController2));
+        m_elevator.setDefaultCommand(new MEC(m_elevator, m_driverController));
         m_shooter.setDefaultCommand(new ShootingCmd(m_shooter, "stop"));
         
     }
@@ -97,8 +98,8 @@ public class RobotContainer {
             .whileTrue(new RunCommand(() -> m_drive.setX(), m_drive));
 
         // 모드 전환 및 Setpoint 순환 버튼 (버튼 14 - 옵션 버튼)
-        new JoystickButton(m_driverController, OIConstants.kDriverMode) // 버튼 14
-            .onTrue(new InstantCommand(() -> DriveMode()));
+        // new JoystickButton(m_driverController, OIConstants.kDriverMode) // 버튼 14
+        //     .onTrue(new InstantCommand(() -> DriveMode()));
 
         new JoystickButton(m_driverController, OIConstants.kDriverShooterIntakeIndex).whileTrue(new ShootingCmd(m_shooter, "in"));
         new JoystickButton(m_driverController, OIConstants.kDriverShooterShootIndex).whileTrue(new ShootingCmd(m_shooter, "out"));
@@ -120,71 +121,63 @@ public class RobotContainer {
         new JoystickButton(m_driverController, OIConstants.kDriverResetElevatorIndex).whileTrue(new RunCommand(() -> m_elevator.resetEncoder(), m_elevator));
         new JoystickButton(m_driverController, OIConstants.kDriverResetGyroButtonIndex).whileTrue(new RunCommand(() -> m_drive.zeroHeading(), m_drive));
         // Setpoint 모드에서 순환 실행 (버튼 14를 누를 때마다 순환)
-        // new JoystickButton(m_driverController, OIConstants.kDriverElevatorL1Index)
-        // .onTrue(new InstantCommand(() -> {
-        //     if (isAutoMode) { // Setpoint 모드일 때만 순환
-        //         cycleSetpoint();
-        //     }
-        // }));
+        new JoystickButton(m_driverController, OIConstants.kDriverChangeSpeedIndex)
+        .onTrue(new InstantCommand(() -> {
+            if (isFastMode) { // Setpoint 모드일 때만 순환
+                driveSpeedMode = 2;
+            }
+            else{
+                driveSpeedMode = 1;
+            }
+        }));
 
         //SECOND CONTROLLER CODE
-        new JoystickButton(m_driverController2, OIConstants.kDriverSetXIndex)
-        .whileTrue(new RunCommand(() -> m_drive.setX(), m_drive));
+        // new JoystickButton(m_driverController2, OIConstants.kDriverSetXIndex)
+        // .whileTrue(new RunCommand(() -> m_drive.setX(), m_drive));
 
-        new JoystickButton(m_driverController2, OIConstants.kDriverMode) // 버튼 14
-            .onTrue(new InstantCommand(() -> DriveMode()));
+        // new JoystickButton(m_driverController2, OIConstants.kDriverMode) // 버튼 14
+        //     .onTrue(new InstantCommand(() -> DriveMode()));
 
-        new JoystickButton(m_driverController2, OIConstants.kDriverShooterIntakeIndex).whileTrue(new ShootingCmd(m_shooter, "in"));
-        new JoystickButton(m_driverController2, OIConstants.kDriverShooterShootIndex).whileTrue(new ShootingCmd(m_shooter, "out"));
+        // new JoystickButton(m_driverController2, OIConstants.kDriverShooterIntakeIndex).whileTrue(new ShootingCmd(m_shooter, "in"));
+        // new JoystickButton(m_driverController2, OIConstants.kDriverShooterShootIndex).whileTrue(new ShootingCmd(m_shooter, "out"));
 
-        Trigger povUp2 = new Trigger(() -> m_driverController2.getPOV() == 0);
-        povUp2.whileTrue(new SEC(m_elevator, ElevatorConstants.kSetpoints[2]));
+        // Trigger povUp2 = new Trigger(() -> m_driverController2.getPOV() == 0);
+        // povUp2.whileTrue(new SEC(m_elevator, ElevatorConstants.kSetpoints[2]));
 
-        Trigger povDown2 = new Trigger(() -> m_driverController2.getPOV() == 180);
-        povDown2.whileTrue(new SEC(m_elevator, ElevatorConstants.kSetpoints[0]));
+        // Trigger povDown2 = new Trigger(() -> m_driverController2.getPOV() == 180);
+        // povDown2.whileTrue(new SEC(m_elevator, ElevatorConstants.kSetpoints[0]));
 
 
-        Trigger povRight2 = new Trigger(() -> m_driverController2.getPOV() == 90);
-        povRight2.whileTrue(new SEC(m_elevator, ElevatorConstants.kSetpoints[3]));
+        // Trigger povRight2 = new Trigger(() -> m_driverController2.getPOV() == 90);
+        // povRight2.whileTrue(new SEC(m_elevator, ElevatorConstants.kSetpoints[3]));
 
         
-        Trigger povLeft2 = new Trigger(() -> m_driverController2.getPOV() == 270);
-        povLeft2.whileTrue(new SEC(m_elevator, ElevatorConstants.kSetpoints[1]));
+        // Trigger povLeft2 = new Trigger(() -> m_driverController2.getPOV() == 270);
+        // povLeft2.whileTrue(new SEC(m_elevator, ElevatorConstants.kSetpoints[1]));
 
-        new JoystickButton(m_driverController2, OIConstants.kDriverResetElevatorIndex).whileTrue(new RunCommand(() -> m_elevator.resetEncoder(), m_elevator));
-        new JoystickButton(m_driverController2, OIConstants.kDriverResetGyroButtonIndex).whileTrue(new RunCommand(() -> m_drive.zeroHeading(), m_drive));
+        // new JoystickButton(m_driverController2, OIConstants.kDriverResetElevatorIndex).whileTrue(new RunCommand(() -> m_elevator.resetEncoder(), m_elevator));
+        // new JoystickButton(m_driverController2, OIConstants.kDriverResetGyroButtonIndex).whileTrue(new RunCommand(() -> m_drive.zeroHeading(), m_drive));
     }
 
     // 모드 전환 메서드 (기존 DriveMode 유지)
-    private void DriveMode() {
-        isAutoMode = !isAutoMode; // Setpoint 모드와 리모컨 모드 전환
-        System.out.println("Mode: " + (isAutoMode ? "tele-Auto Mode" : "tele-tele 모드"));
-    }
-
-    // Setpoint 순환 메서드
-    private void cycleSetpoint() {
-        setpointIndex = (setpointIndex + 1) % 4; // 0, 1, 2, 3을 순환
-        double targetSetpoint = ElevatorConstants.kSetpoints[setpointIndex];
-        System.out.println("elevator" + targetSetpoint + "inches");
-        new SEC(m_elevator, targetSetpoint).schedule(); // 해당 Setpoint로 이동
-    }
+    // private void DriveMode() {
+    //     isFastMode = !isFastMode; // Setpoint 모드와 리모컨 모드 전환
+    //     System.out.println("Mode: " + (isFastMode ? "FAST" : "SLOW"));
+    // }
 
     // 모드에 따른 명령 반환 (기존 getmodecommand 유지)
-    public Command getmodecommand(double setpoint) {
-        if (isAutoMode) {
-            return new ASEC(m_elevator, setpoint);
-        } else {
-            return new MEC(m_elevator, m_driverController, m_driverController2);
-        }
-    }
+    // public Command getmodecommand(double setpoint) {
+    //     if (isFastMode) {
+    //         return new ASEC(m_elevator, setpoint);
+    //     } else {
+    //         return new MEC(m_elevator, m_driverController, m_driverController2);
+    //     }
+    // }
 
     // 자율 주행 명령 캐싱 및 상수 설정 메서드
     public Command getAutonomousCommand() {
         m_gyro.zeroHeading(); 
-        
-        
 
-        Command wait3Seconds = new WaitCommand(3.0);
 
         Command moveBackward = new RunCommand(
             () -> m_drive.drive(-0.2, 0.0, 0.0, true),  // -0.5 속도로 뒤로 이동
@@ -213,13 +206,13 @@ public class RobotContainer {
             System.out.println("[ResetGyro] Yaw after reset: " + m_gyro.getYaw() + " degrees");
         }, m_gyro);
 
-        Command backCommand = new AutoCommand(
+        Command dynamic = new AutoCommand(
             m_drive, 
             m_limelight, 
             m_pathGenerator, 
-            5.0, // xGoal = 5
-            1.0,  // yGoal = 4
-            Rotation2d.fromDegrees(180)
+            6.0, // xGoal = 5
+            4.0,  // yGoal = 4
+            Rotation2d.fromDegrees(0)
         );
 
         
@@ -227,10 +220,20 @@ public class RobotContainer {
         // 시퀀스 정의
         return new SequentialCommandGroup(
             
-            new SAutocmd(m_drive, "forward"),//3.57
-            resetGyroCommand,
-            new WaitCommand(3),
-            backCommand,
+
+            new SAutocmd(m_drive, "CR-1"),//3.57
+            
+            new WaitCommand(0.5),
+            
+          
+
+            autoshoot,
+            new WaitCommand(1),
+            moveBackward,
+
+
+
+            
             
             // new WaitCommand(3),
             // backCommand,

@@ -102,7 +102,7 @@ public class SAutocmd extends Command {
                     )
                 ),
                 robotConfig,
-                () -> false, // 경로 뒤집기 방지 (PathPlan   정보를 신뢰)
+                () -> false, // 경로 뒤집기 방지 (PathPlan 정보를 신뢰)
                 drive
             );
             

@@ -12,12 +12,11 @@ import frc.robot.subsystems.ElevatorSubsystem;
 public class MEC extends Command {
     private final ElevatorSubsystem elevatorSubsystem;
     private final PS4Controller joystick;
-    private final PS4Controller joystick2;
+    // private final PS4Controller joystick2;
 
-    public MEC(ElevatorSubsystem elevatorSubsystem, PS4Controller joystick, PS4Controller joystick2) {
+    public MEC(ElevatorSubsystem elevatorSubsystem, PS4Controller joystick) {
         this.elevatorSubsystem = elevatorSubsystem;
         this.joystick = joystick;
-        this.joystick2 = joystick2;
         addRequirements(elevatorSubsystem);
     }
 
@@ -31,14 +30,14 @@ public class MEC extends Command {
         double motorSpeed = rightTrigger - leftTrigger ;
 
 
-        double rightTrigger2 = -MathUtil.applyDeadband(joystick2.getRawAxis(4), OIConstants.kDriveDeadband) + 1;
-        double leftTrigger2 = -MathUtil.applyDeadband(joystick2.getRawAxis(3), OIConstants.kDriveDeadband) + 1; 
+        // double rightTrigger2 = -MathUtil.applyDeadband(joystick2.getRawAxis(4), OIConstants.kDriveDeadband) + 1;
+        // double leftTrigger2 = -MathUtil.applyDeadband(joystick2.getRawAxis(3), OIConstants.kDriveDeadband) + 1; 
 
-        // Calculate motor speed
-        double motorSpeed2 = rightTrigger2 - leftTrigger2 ;
+        // // Calculate motor speed
+        // double motorSpeed2 = rightTrigger2 - leftTrigger2 ;
 
         // Set the motor speed
-        elevatorSubsystem.setMotorSpeed((motorSpeed2 - motorSpeed) * ElevatorConstants.kElevatorManualSpeed);
+        elevatorSubsystem.setMotorSpeed((-motorSpeed) * ElevatorConstants.kElevatorManualSpeed);
     }
 
     @Override

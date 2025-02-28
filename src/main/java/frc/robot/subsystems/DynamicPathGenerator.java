@@ -84,6 +84,7 @@ public class DynamicPathGenerator extends SubsystemBase {
     
     // IdealStartingState를 생성 (속도 0.0, 회전값 rotationGoal)
     IdealStartingState idealStartingState = new IdealStartingState(0.0, rotationGoal);
+    System.out.print(rotationGoal);
     // 내부에서 사용할 idealStartingState 필드에 저장 (미리 선언되어 있어야 함)
     this.idealStartingState = idealStartingState;
 
