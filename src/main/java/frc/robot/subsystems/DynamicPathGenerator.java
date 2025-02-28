@@ -4,6 +4,7 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.PathPoint;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.IdealStartingState;
 import com.pathplanner.lib.path.Waypoint;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.pathfinding.LocalADStar;
@@ -37,10 +38,14 @@ import org.json.simple.JSONObject;
  */
 public class DynamicPathGenerator extends SubsystemBase {
     // 원하는 최대 속도 등 (더 자세한 상수는 Constants에 통합 가능)
-    private static final double MAX_SPEED_M_S     = 3.0; 
-    private static final double MAX_ACCEL_M_S2    = 3.0; 
+    private static final double MAX_SPEED_M_S     = 1.5; 
+    private static final double MAX_ACCEL_M_S2    = 1.5; 
     private static final double MAX_ANG_VEL_RAD_S = Math.toRadians(540.0);
     private static final double MAX_ANG_ACC_RAD_S2= Math.toRadians(720.0);
+    private Rotation2d rotationGoal;
+       private IdealStartingState idealStartingState;
+
+    
 
     private static final long PATH_CALCULATION_TIMEOUT = Long.MAX_VALUE; // 무한 타임아웃 // 타임아웃 시간 (초)
 
@@ -52,48 +57,74 @@ public class DynamicPathGenerator extends SubsystemBase {
         Pathfinding.setPathfinder(adStar);
     }
 
-    /** 경로 생성 시작 (비동기) */
-    public void startPathGeneration(Translation2d startPos, Translation2d goalPos) {
-        pathFuture = CompletableFuture.supplyAsync(() -> {
-            try {
-                Pathfinding.setStartPosition(startPos);
-                Pathfinding.setGoalPosition(goalPos);
-                Pathfinding.ensureInitialized();
+    // /** 경로 생성 시작 (비동기) */
+    // public void startPathGeneration(Translation2d startPos, Translation2d goalPos) {
+    //     pathFuture = CompletableFuture.supplyAsync(() -> {
+    //         try {
+    //             this.rotationGoal = rotationGoal;
+    //             Pathfinding.setStartPosition(startPos);
+    //             Pathfinding.setGoalPosition(goalPos);
+    //             Pathfinding.ensureInitialized();
                 
-                PathPlannerPath path = buildPathWithConstraints();
-                if (path == null) {
-                    throw new Exception("Path building failed.");
-                }
-                return path;
-            } catch (Exception e) {
-                System.err.println("❌ 경로 생성 시작 중 오류: " + e.getMessage());
-                e.printStackTrace();
-                return null;
+    //             PathPlannerPath path = buildPathWithConstraints();
+    //             if (path == null) {
+    //                 throw new Exception("Path building failed.");
+    //             }
+    //             return path;
+    //         } catch (Exception e) {
+    //             System.err.println("❌ 경로 생성 시작 중 오류: " + e.getMessage());
+    //             e.printStackTrace();
+    //             return null;
+    //         }
+    //     }, executor).completeOnTimeout(null, PATH_CALCULATION_TIMEOUT, TimeUnit.SECONDS);
+    // }
+    public void startPathGeneration(Translation2d startPos, Translation2d goalPos, Rotation2d rotationGoal) {
+    // 목표 회전값 저장
+    this.rotationGoal = rotationGoal;
+    
+    // IdealStartingState를 생성 (속도 0.0, 회전값 rotationGoal)
+    IdealStartingState idealStartingState = new IdealStartingState(0.0, rotationGoal);
+    // 내부에서 사용할 idealStartingState 필드에 저장 (미리 선언되어 있어야 함)
+    this.idealStartingState = idealStartingState;
+
+    pathFuture = CompletableFuture.supplyAsync(() -> {
+        try {
+            // 시작 위치와 목표 위치 설정
+            Pathfinding.setStartPosition(startPos);
+            Pathfinding.setGoalPosition(goalPos);
+            Pathfinding.ensureInitialized();
+
+            // buildPathWithConstraints() 내부에서 idealStartingState를 활용하도록 수정되어야 함.
+            PathPlannerPath path = buildPathWithConstraints();
+            if (path == null) {
+                throw new Exception("Path building failed.");
             }
-        }, executor).completeOnTimeout(null, PATH_CALCULATION_TIMEOUT, TimeUnit.SECONDS);
-    }
+            return path;
+        } catch (Exception e) {
+            System.err.println("❌ 경로 생성 시작 중 오류: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }, executor).completeOnTimeout(null, PATH_CALCULATION_TIMEOUT, TimeUnit.SECONDS);
+}
 
     /** Pathfinding이 새 경로를 찾았는지 */
     public boolean isNewPathAvailable() {
         return pathFuture != null && pathFuture.isDone();
     }
 
-    /** Path가 준비되었다면 최종 PathPlannerPath를 빌드 & 반환 */
     public PathPlannerPath buildPathWithConstraints() {
         try {
-            // 제약사항
             PathConstraints constraints = new PathConstraints(
-                MAX_SPEED_M_S, MAX_ACCEL_M_S2, 
+                MAX_SPEED_M_S, MAX_ACCEL_M_S2,
                 MAX_ANG_VEL_RAD_S, MAX_ANG_ACC_RAD_S2,
-                12.0, false  // nominalVoltage, unlimited
+                12.0, false
             );
-            // 목표 종단 상태(예: 속도=0, 회전=-142.582도)
-            GoalEndState goalState = new GoalEndState(0.0, Rotation2d.fromDegrees(-142.582));
+            GoalEndState goalState = new GoalEndState(0.0, rotationGoal); // 속도 0, 목표 회전 적용
 
-            // 빌드
             PathPlannerPath newPath = Pathfinding.getCurrentPath(constraints, goalState);
             if (newPath == null) {
-                System.err.println("❌ AD* 경로 빌드 실패! 현재 경로 제약 조건: " + constraints.toString());
+                System.err.println("❌ AD* 경로 빌드 실패!");
                 return null;
             } else {
                 System.out.println("✅ AD* 경로 빌드 성공! 경로 길이: " + calculatePathLength(newPath));

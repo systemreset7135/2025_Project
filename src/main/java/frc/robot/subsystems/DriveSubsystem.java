@@ -15,6 +15,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.networktables.GenericEntry;
 import frc.robot.Constants;
@@ -26,6 +27,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.RotationTarget;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
@@ -33,6 +39,7 @@ import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 
 public class DriveSubsystem extends SubsystemBase {
@@ -106,7 +113,47 @@ public class DriveSubsystem extends SubsystemBase {
             Constants.AutoConstants.kIYController,
             Constants.AutoConstants.kDYController
         );
-   }
+
+        // AutoBuilder 설정
+        RobotConfig config;
+        try {
+            config = RobotConfig.fromGUISettings();
+        } catch (Exception e) {
+            System.err.println("[DriveSubsystem] RobotConfig 로드 실패: " + e.getMessage());
+            // 기본값으로 대체 (예: 임의의 값, 상황에 맞게 수정 가능)
+            ModuleConfig moduleConfig = new ModuleConfig(
+              0.048,    // wheelRadiusMeters (m)
+              5.45,     // maxDriveVelocityMPS (m/s)
+              1.2,      // wheelCOF
+              DCMotor.getNEO(1), // driveMotor (NEO 모터, 1개)
+              5.143,    // driveGearing
+              60.0,     // driveCurrentLimit (A)
+              1         // numMotors (Swerve는 모듈당 1개 모터)
+          );
+          config = new RobotConfig(
+              74.088,    // massKG (로봇 질량, kg)
+              6.883,     // MOI (관성 모멘트, kg·m²)
+              moduleConfig, // 모듈 설정
+              0.546      // trackWidthMeters (트랙 폭, m)
+          );
+        }
+
+        AutoBuilder.configure(
+            this::getPose, // 현재 로봇 포즈
+            this::resetOdometry, // 오도메트리 리셋
+            this::getChassisSpeeds, // 현재 섀시 속도
+            (speeds, feedforwards) -> setModuleStates(Constants.DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds)), // 구동 명령
+            new PPHolonomicDriveController(
+                new PIDConstants(Constants.AutoConstants.kPXController, Constants.AutoConstants.kIXController, Constants.AutoConstants.kDXController), // X/Y 이동 PID
+                new PIDConstants(Constants.AutoConstants.kPYController, Constants.AutoConstants.kIYController, Constants.AutoConstants.kDYController)  // 회전 PID
+            ),
+            config, // 로봇 설정
+            () -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red, // 연합별 경로 반전
+            this // 서브시스템 요구사항
+        );
+}
+  
+  
  
    @Override
    public void periodic() {

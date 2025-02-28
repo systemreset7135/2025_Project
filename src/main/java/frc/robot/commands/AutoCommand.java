@@ -42,18 +42,20 @@ public class AutoCommand extends Command {
   private static final double TIMEOUT_PER_METER = 1.0; // 거리당 추가 시간
   private static final double MAX_TIMEOUT_SEC = 30.0; // 최대 타임아웃 시간
   private double dynamicTimeout;
+  private final Rotation2d rotationGoal;
 
   private static final int MAX_ATTEMPTS = 3; //3번 재시도
   private int autoAttemptCount = 0;
 
   public AutoCommand(DriveSubsystem drive, Limelightsub limelight,
-                     DynamicPathGenerator pathGenerator,
-                     double xGoal, double yGoal) {
+                       DynamicPathGenerator pathGenerator,
+                       double xGoal, double yGoal, Rotation2d rotationGoal) {
     this.drive = drive;
     this.limelight = limelight;
     this.pathGenerator = pathGenerator;
     this.xGoal = xGoal;
     this.yGoal = yGoal;
+    this.rotationGoal = rotationGoal;
   }
 
   @Override
@@ -68,10 +70,12 @@ public class AutoCommand extends Command {
 
 
 
-    Translation2d startPos = currentPose.getTranslation();// 시작 위치
+    Translation2d startPos = currentPose.getTranslation();
+    //Translation2d startPos = new Translation2d(6, 1);
     Translation2d goalPos = new Translation2d(xGoal, yGoal);//목표 위치치
     Rotation2d startRotation = currentPose.getRotation();//시작 방향
-    System.out.println(startPos + "=>" + goalPos);
+    System.out.println("[AutoCommand] Starting drive from position (" + startPos.getX() + ", " + startPos.getY() + 
+                   ") => Target: (" + goalPos.getX() + ", " + goalPos.getY() + ")");
 
 
     double distance = startPos.getDistance(goalPos); //사이 거리
@@ -80,7 +84,7 @@ public class AutoCommand extends Command {
     System.out.println("[AutoCommand] Dynamictime " + dynamicTimeout + " seconds");
 
 
-    pathGenerator.startPathGeneration(startPos, goalPos);//경로 생성
+    pathGenerator.startPathGeneration(startPos, goalPos, rotationGoal);
   }
 
   @Override
@@ -111,9 +115,11 @@ public class AutoCommand extends Command {
   }
 
   private void retryPathGeneration() {
-    Translation2d startPos = new Translation2d(6, 7);
+    //Translation2d startPos = new Translation2d(6, 1);//수정 해야돼 
+    Pose2d currentPose = drive.getPose();
+    Translation2d startPos = currentPose.getTranslation();
     Translation2d goalPos = new Translation2d(xGoal, yGoal);
-    pathGenerator.startPathGeneration(startPos, goalPos);
+    pathGenerator.startPathGeneration(startPos, goalPos, rotationGoal);
   }
 
   private void scheduleFollowAndAvoid(PathPlannerPath path) {

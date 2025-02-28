@@ -1,0 +1,70 @@
+package frc.robot.commands;
+
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.Constants;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.auto.AutoBuilder;
+
+public class SAutocmd extends Command {
+    private final DriveSubsystem drive;
+    private Command autoCommand;
+    private final String pathName;
+    private Pose2d startPose;
+    private Pose2d endPose;
+
+    public SAutocmd(DriveSubsystem drive, String pathName) {
+        this.drive = drive;
+        this.pathName = pathName;
+        addRequirements(drive);
+    }
+
+    @Override
+    public void initialize() {
+        startPose = drive.getPose();
+        SmartDashboard.putNumber("Robot Start X", startPose.getX());
+        SmartDashboard.putNumber("Robot Start Y", startPose.getY());
+        SmartDashboard.putNumber("Robot Start Rot (deg)", startPose.getRotation().getDegrees());
+
+        try {
+            PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
+            if (path == null) {
+                System.out.println("[SAutocmd] 경로를 찾을 수 없음!");
+                return;
+            }
+            drive.drawPathOnField("point", path);
+            autoCommand = AutoBuilder.followPath(path);
+            autoCommand.initialize();
+            System.out.println("[SAutocmd] AutoBuilder 경로 실행 시작: " + pathName);
+        } catch (Exception e) {
+            System.err.println("[SAutocmd] 경로 로드 실패: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void execute() {
+        if (autoCommand != null) {
+            autoCommand.execute();
+        }
+    }
+
+    @Override
+    public boolean isFinished() {
+        return autoCommand != null && autoCommand.isFinished();
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+        if (autoCommand != null) {
+            autoCommand.end(interrupted);
+        }
+        endPose = drive.getPose();
+        System.out.println("[SAutocmd] 마지막 위치 - X: " + endPose.getX() + 
+                          ", Y: " + endPose.getY() + 
+                          ", Rotation: " + endPose.getRotation().getDegrees() + "도");
+        drive.setModuleStates(Constants.DriveConstants.kDriveKinematics.toSwerveModuleStates(new ChassisSpeeds(0, 0, 0)));
+    }
+}

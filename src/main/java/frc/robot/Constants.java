@@ -25,8 +25,9 @@ public final class Constants {
   public static final class DriveConstants {//로봇 주행관련 상수 
     // Driving Parameters - Note that these are not the maximum capable speeds of
     // the robot, rather the allowed maximum speeds
-    public static final double kMaxSpeedMetersPerSecond = 1.5; //3.0도 나쁘지 않아  //로봇 최대 속도 
-    public static final double kMaxAngularSpeed = 0.2 * Math.PI; // radians per second 로봇 회전 속도 
+    public static final double kMaxSpeedMetersPerSecond = 2;
+    ; //3.0도 나쁘지 않아  //로봇 최대 속도 
+    public static final double kMaxAngularSpeed = 2 * Math.PI; // radians per second 로봇 회전 속도 
 
     // Chassis configuration
     public static final double kTrackWidth = Units.inchesToMeters(26); // 좌우 바퀴 사이 값 
@@ -41,7 +42,7 @@ public final class Constants {
 
     // Angular offsets of the modules relative to the chassis in radians 로봇 섀시 각도오차 보정 
     public static final double kFrontLeftChassisAngularOffset = Units.degreesToRadians(180);  
-    public static final double kBackRightChassisAngularOffset = Units.degreesToRadians(0);//backright    
+    public static final double kBackRightChassisAngularOffset = Units.degreesToRadians(180);//backright    
     public static final double kFrontRightChassisAngularOffset = Units.degreesToRadians(0); //front right     
     public static final double kBackLeftChassisAngularOffset = Units.degreesToRadians(180); //backleft  
 
@@ -77,6 +78,7 @@ public final class Constants {
 
   public static final class OIConstants {//운전자 인터 페이스 
     public static final int kDriverControllerPort = 0; //usb 조종기 포트번호 
+    public static final int kDriverControllerPort2 = 1; //usb 조종기 포트번호 
     public static final double kDriveDeadband = 0.1; // 조종기 미세한 움지김 무시 
     public static final int kDriverElevatorL1Index = 1; //엘리베이터 
     // public static final int kDriverElevatorL2Index = 2; //엘리베이터 
@@ -99,11 +101,11 @@ public final class Constants {
     public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;//최대 각속도 
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI; //최대 각가속도 
 
-    public static final double kPXController = 1.0;
+    public static final double kPXController = 0.5;
     public static final double kIXController = 0.0; 
     public static final double kDXController = 0.0;
 
-    public static final double kPYController = 1.0;
+    public static final double kPYController = 0.5;
     public static final double kIYController = 0.0; 
     public static final double kDYController = 0.0; 
 
@@ -124,16 +126,16 @@ public final class Constants {
     public static final int kEncoderDIOPortB = 1;
     public static final int kElevator1CanId = 23; 
     public static final int kElevator2CanId = 24;
-    public static final double[] kSetpoints = {0.41, 1.87, 4.15, 8};
+    public static final double[] kSetpoints = {0.5, 2.3, 5.4, 8.5};
     public static final double kEncoderDistancePerPulse = 0.0005752429199218;
     public static final double kElevatorSetpointSpeed = 0.3;
-    public static final double kElevatorManualSpeed = 0.4;
-    public static final double kElevatorSetpointTolerance = 0.05;
+    public static final double kElevatorManualSpeed = 0.25;
+    public static final double kElevatorSetpointTolerance = 0.03;
   }
   public static class ShooterConstants {
     public static final int kShooterPort = 21;
     public static final double kShootChargeTime = 1.5;
-    public static final double kShootSpeed = 1;
+    public static final double kShootSpeed = 0.8;
     public static final double kIntakeSpeed = -0.5;
   }
 }

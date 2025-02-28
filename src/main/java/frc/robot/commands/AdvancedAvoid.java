@@ -230,7 +230,7 @@ public class AdvancedAvoid extends Command {
         Pose2d pose = driveSubsystem.getPose();
         Translation2d startPos = pose.getTranslation();
         CompletableFuture.runAsync(() -> {
-            pathGenerator.startPathGeneration(startPos, originalGoal);
+            pathGenerator.startPathGeneration(startPos, originalGoal, pose.getRotation());
             newPath = pathGenerator.buildPathWithConstraints();
         }, executor);
     }

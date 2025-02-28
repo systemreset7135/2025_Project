@@ -100,6 +100,7 @@ public class MAXSwerveModule {
 
     // 현재 조향 상태와 비교해 불필요하게 90도 이상 회전하는 것을 최적화(최소 회전각으로 목표를 달성)
     correctedDesiredState.optimize(new Rotation2d(m_turningEncoder.getPosition()));
+    SmartDashboard.putNumber("Module " + m_drivingSpark.getDeviceId() + " Target Angle", correctedDesiredState.angle.getDegrees());
 
      // 계산된 목표 속도와 각도를 폐쇄 루프 제어기를 통해 모터에 명령 전달
     m_drivingClosedLoopController.setReference(correctedDesiredState.speedMetersPerSecond, ControlType.kVelocity);

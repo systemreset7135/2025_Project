@@ -29,6 +29,7 @@ public class SAutocmd extends Command {
     private static final double MAX_VELOCITY = 1.0; // 지금 설정된 최대속도 (m/s)
     private static final double MAX_ACCELERATION = 1.0; // 지금 설정된 최대가속도 (m/s^2)
     private final Field2d fieldSim; 
+    private PathPlannerPath loadedPath;
 
     private Pose2d startPose;
     private Pose2d endPose; 
@@ -101,7 +102,7 @@ public class SAutocmd extends Command {
                     )
                 ),
                 robotConfig,
-                () -> false, // 경로 뒤집기 방지 (PathPlanner의 회전 정보를 신뢰)
+                () -> false, // 경로 뒤집기 방지 (PathPlan   정보를 신뢰)
                 drive
             );
             
@@ -144,10 +145,15 @@ public class SAutocmd extends Command {
                           ", Y: " + endPose.getY() + 
                           ", Rotation: " + endPose.getRotation().getDegrees() + "도");
         
+        Rotation2d targetRotation = Rotation2d.fromDegrees(180.0);
+        if (loadedPath != null && loadedPath.getGoalEndState() != null) {
+            targetRotation = loadedPath.getGoalEndState().rotation();
+        }
+        
         Pose2d desiredEndPose = new Pose2d(
         endPose.getX(), // X 좌표 유지
         endPose.getY(), // Y 좌표 유지
-        Rotation2d.fromDegrees(180) // 원하는 회전 (예: 180도)
+        targetRotation  // 원하는 회전 (예: 180도)
     );
     drive.resetOdometry(desiredEndPose); // 오도메트리 강제 업데이트
         // 로봇 정지
